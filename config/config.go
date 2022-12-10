@@ -1,15 +1,15 @@
 package config
 
 import (
+	"gopkg.in/ini.v1"
 	"log"
 	"os"
-	"gopkg.in/ini.v1"
 )
 
 type ConfigList struct {
-	ChannelSecret      string
+	ChannelSecret string
 	AccessToken   string
-	LogFile     string
+	LogFile       string
 }
 
 var Config ConfigList //グローバル変数
@@ -26,8 +26,8 @@ func init() {
 	}
 
 	Config = ConfigList{
-		ChannelSecret:        cfg.Section("linebot").Key("channel_secret").String(),
-		AccessToken:     cfg.Section("linebot").Key("access_token").String(),
+		ChannelSecret: cfg.Section("linebot").Key("channel_secret").String(),
+		AccessToken:   cfg.Section("linebot").Key("access_token").String(),
 		LogFile:       cfg.Section("log").Key("log_file").String(),
 	}
 }

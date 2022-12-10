@@ -17,16 +17,16 @@ import (
 )
 
 func handler(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w,"hello world")
+	fmt.Fprintf(w, "hello world")
 }
 
 func lineHandler(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w,"d world")
+	fmt.Fprintf(w, "d world")
 	bot, err := linebot.New(
 		config.Config.ChannelSecret, //channel secret
-		config.Config.AccessToken, //access token
+		config.Config.AccessToken,   //access token
 	)
-	if err != nil{
+	if err != nil {
 		http.Error(w, "Error init client", http.StatusBadRequest)
 		log.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
 				replyMessage := message.Text
-				_,err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do()
+				_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do()
 				if err != nil {
 					log.Print(err)
 				}
