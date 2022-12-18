@@ -7,6 +7,7 @@ https://github.com/line/line-bot-sdk-go
 */
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"mahjong-linebot/config"
@@ -14,6 +15,9 @@ import (
 	"net/http"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+
+	firebase "firebase.google.com/go"
+  "google.golang.org/api/option"
 )
 
 func handler(w http.ResponseWriter, req *http.Request) {
@@ -59,6 +63,28 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("./serviceAccounts/mahjong-linebot-a15af8e60164.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+			log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	_, _, err = client.Collection("users").Add(ctx, map[string]interface{}{
+		"first": "Ada",
+		"last":  "Lovelace",
+		"born":  1815,
+	})
+	if err != nil {
+			log.Fatalf("Failed adding alovelace: %v", err)
+	}
+
+	defer client.Close()
+
 	utils.LoggingSettings(config.Config.LogFile)
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/callback", lineHandler)
