@@ -2,6 +2,7 @@ package firestore
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -17,6 +18,11 @@ type GameResult struct {
 	Number    string    `firestore:"number"`
 	Timestamp time.Time `firestore:"timestamp"`
 }
+
+const (
+	//ちなみに、Z09:00をなくすと、Formatにしたら自動でUTCの時間になってしまう。
+	RFC3339 = "2006-01-02T15:04:05Z09:00"
+)
 
 func firebaseInit(ctx context.Context) (*firestore.Client, error) {
 	// Use a service account
@@ -93,7 +99,7 @@ func AddRankData(text string, time time.Time) error {
 		return err
 	}
 	m := dsnap.Data()
-	_, err = client.Collection("ranks").Doc(time.Format("2006-01-02_03:04:05")).Set(ctx, GameResult{
+	_, err = client.Collection("ranks").Doc(time.Format(RFC3339)[0:19]).Set(ctx, GameResult{
 		Rank:      text,
 		Game:      m["game"].(string),
 		Number:    m["number"].(string),
