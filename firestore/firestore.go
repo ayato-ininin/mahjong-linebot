@@ -12,9 +12,9 @@ import (
 )
 
 type GameResult struct {
-	Rank    string `firestore:"rank"`
-	Game     string `firestore:"game"`
-	Number string `firestore:"number"`
+	Rank      string    `firestore:"rank"`
+	Game      string    `firestore:"game"`
+	Number    string    `firestore:"number"`
 	Timestamp time.Time `firestore:"timestamp"`
 }
 
@@ -23,41 +23,45 @@ func firebaseInit(ctx context.Context) (*firestore.Client, error) {
 	sa := option.WithCredentialsFile("./serviceAccounts/mahjong-linebot-a15af8e60164.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-			log.Fatalln(err)
-			return nil, err
+		log.Fatalln(err)
+		return nil, err
 	}
 
 	client, err := app.Firestore(ctx)
 	if err != nil {
-			log.Fatalln(err)
-			return nil, err
+		log.Fatalln(err)
+		return nil, err
 	}
 
 	return client, nil
 }
 
-/**
+/*
+*
+
 	firestoreのcurrentデータを更新。
 	（東風戦、半荘戦）、（三麻、四麻）を試合前に登録しておく。
-**/
+
+*
+*/
 func AddGameStatusData(text, param string, time time.Time) error {
 	ctx := context.Background()
 	client, err := firebaseInit(ctx)
 	if err != nil {
-			log.Fatal(err)
+		log.Fatal(err)
 	}
-	_, err = client.Collection("gameStatus").Doc("current").Update(ctx,[]firestore.Update{
+	_, err = client.Collection("gameStatus").Doc("current").Update(ctx, []firestore.Update{
 		{
-			Path: param,
+			Path:  param,
 			Value: text,
 		},
 		{
-			Path: "timestamp",
+			Path:  "timestamp",
 			Value: time,
 		},
 	})
 	if err != nil {
-			log.Fatalf("Failed adding alovelace: %v", err)
+		log.Fatalf("Failed adding alovelace: %v", err)
 	}
 
 	// 切断
@@ -67,14 +71,18 @@ func AddGameStatusData(text, param string, time time.Time) error {
 	return err
 }
 
-/**
+/*
+*
+
 	firestoreのcurrentデータから、試合の種類を取得して順位を登録。
-**/
+
+*
+*/
 func AddRankData(text string, time time.Time) error {
 	ctx := context.Background()
 	client, err := firebaseInit(ctx)
 	if err != nil {
-			log.Fatal(err)
+		log.Fatal(err)
 	}
 	// 切断
 	defer client.Close()
@@ -86,14 +94,14 @@ func AddRankData(text string, time time.Time) error {
 	}
 	m := dsnap.Data()
 	_, err = client.Collection("ranks").Doc(time.Format("2006-01-02_03:04:05")).Set(ctx, GameResult{
-		Rank: text,
-		Game: m["game"].(string),
-		Number: m["number"].(string),
-		Timestamp:  time,
+		Rank:      text,
+		Game:      m["game"].(string),
+		Number:    m["number"].(string),
+		Timestamp: time,
 	})
 	if err != nil {
-			log.Fatalf("Failed adding alovelace: %v", err)
-			return err
+		log.Fatalf("Failed adding alovelace: %v", err)
+		return err
 	}
 
 	// エラーなしは成功

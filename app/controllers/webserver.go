@@ -56,46 +56,46 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 		if event.Type == linebot.EventTypeMessage {
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
-				switch (message.Text){
-					case "東風戦", "半荘戦":
-						log.Print("gamestatus:game register");
-						err := firestore.AddGameStatusData(message.Text, "game", time.Now().In(tz))
-						//リプライを返さないと何度も再送される（と思われる）ので返信
-						if(err == nil){
-							_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
-							if err != nil {
-								log.Print(err)
-							}
-						}
-						break;
-					case "三麻", "四麻":
-						log.Print("gamestatus:number register");
-						err := firestore.AddGameStatusData(message.Text, "number", time.Now().In(tz))
-						//リプライを返さないと何度も再送される（と思われる）ので返信
-						if(err == nil){
-							_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
-							if err != nil {
-								log.Print(err)
-							}
-						}
-						break;
-					case "1", "2", "3", "4":
-						err := firestore.AddRankData(message.Text,time.Now().In(tz))
-						//リプライを返さないと何度も再送される（と思われる）ので返信
-						if(err == nil){
-							_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
-							if err != nil {
-								log.Print(err)
-							}
-						}
-						log.Print("rank register");
-						break;
-					default:
-						//リプライを返さないと何度も再送される（と思われる）ので返信
-						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録できません")).Do()
+				switch message.Text {
+				case "東風戦", "半荘戦":
+					log.Print("gamestatus:game register")
+					err := firestore.AddGameStatusData(message.Text, "game", time.Now().In(tz))
+					//リプライを返さないと何度も再送される（と思われる）ので返信
+					if err == nil {
+						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
 						if err != nil {
-							log.Fatal(err)
+							log.Print(err)
 						}
+					}
+					break
+				case "三麻", "四麻":
+					log.Print("gamestatus:number register")
+					err := firestore.AddGameStatusData(message.Text, "number", time.Now().In(tz))
+					//リプライを返さないと何度も再送される（と思われる）ので返信
+					if err == nil {
+						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
+						if err != nil {
+							log.Print(err)
+						}
+					}
+					break
+				case "1", "2", "3", "4":
+					err := firestore.AddRankData(message.Text, time.Now().In(tz))
+					//リプライを返さないと何度も再送される（と思われる）ので返信
+					if err == nil {
+						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
+						if err != nil {
+							log.Print(err)
+						}
+					}
+					log.Print("rank register")
+					break
+				default:
+					//リプライを返さないと何度も再送される（と思われる）ので返信
+					_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録できません")).Do()
+					if err != nil {
+						log.Fatal(err)
+					}
 				}
 			}
 		}
