@@ -10,6 +10,7 @@ type ConfigList struct {
 	ChannelSecret string
 	AccessToken   string
 	LogFile       string
+	Port          int
 }
 
 var Config ConfigList //グローバル変数
@@ -29,5 +30,6 @@ func init() {
 		ChannelSecret: cfg.Section("linebot").Key("channel_secret").String(),
 		AccessToken:   cfg.Section("linebot").Key("access_token").String(),
 		LogFile:       cfg.Section("log").Key("log_file").String(),
+		Port:           cfg.Section("web").Key("port").MustInt(),
 	}
 }
