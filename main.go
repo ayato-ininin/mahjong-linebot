@@ -9,10 +9,11 @@ https://github.com/line/line-bot-sdk-go
 import (
 	"fmt"
 	"log"
-	"mahjong-linebot/firestore"
 	"mahjong-linebot/config"
+	"mahjong-linebot/firestore"
 	"mahjong-linebot/utils"
 	"net/http"
+	"time"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -49,10 +50,46 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 		if event.Type == linebot.EventTypeMessage {
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
-				replyMessage := message.Text
-				_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do()
-				if err != nil {
-					log.Print(err)
+				switch (message.Text){
+					case "東風戦", "半荘戦":
+						log.Print("gamestatus:game register");
+						err := firestore.AddGameStatusData(message.Text, "game", time.Now())
+						//リプライを返さないと何度も再送される（と思われる）ので返信
+						if(err == nil){
+							_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
+							if err != nil {
+								log.Print(err)
+							}
+						}
+						break;
+					case "三麻", "四麻":
+						log.Print("gamestatus:number register");
+						err := firestore.AddGameStatusData(message.Text, "number", time.Now())
+						//リプライを返さないと何度も再送される（と思われる）ので返信
+						if(err == nil){
+							_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
+							if err != nil {
+								log.Print(err)
+							}
+						}
+						break;
+					case "1", "2", "3", "4":
+						err := firestore.AddRankData(message.Text,time.Now())
+						//リプライを返さないと何度も再送される（と思われる）ので返信
+						if(err == nil){
+							_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
+							if err != nil {
+								log.Print(err)
+							}
+						}
+						log.Print("rank register");
+						break;
+					default:
+						//リプライを返さないと何度も再送される（と思われる）ので返信
+						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録できません")).Do()
+						if err != nil {
+							log.Fatal(err)
+						}
 				}
 			}
 		}
@@ -60,9 +97,8 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	firestore.AddData();
-
 	utils.LoggingSettings(config.Config.LogFile)
+
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/callback", lineHandler)
 	fmt.Println("起動中...")

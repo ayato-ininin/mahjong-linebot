@@ -1,0 +1,29 @@
+{
+  // IntelliSense を使用して利用可能な属性を学べます。
+  // 既存の属性の説明をホバーして表示します。
+  // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch",
+      // "type": "godlvdap",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${fileDirname}",
+      "env": {},
+      "args": []
+  }
+  ]
+  //go install github.com/go-delve/delve/cmd/dlv@latest (デバッグようのdlvコマンドのため)
+  /*
+  echo $GOPATHやwhich go
+  でちゃんとそのディレクトリ自体にパスが通ってるのかを確認が必要・
+  */
+  //一応下記でpathを通している。
+  //export GOPATH=/Users/ayatoymauchi/go
+  //export PATH=$GOPATH/bin:$PATH
+  //source ~/.zshrc
+  //https://qiita.com/momotaro98/items/7fbcad57a9d8488fe999(上記参考)
+  //https://qiita.com/wallkickers/items/f0f8c3a65c2cc6b6009e
+}
