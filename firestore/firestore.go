@@ -15,6 +15,7 @@ type GameResult struct {
 	Rank      string    `firestore:"rank"`
 	Game      string    `firestore:"game"`
 	Number    string    `firestore:"number"`
+	Style     string    `firestore:"style"`
 	Timestamp time.Time `firestore:"timestamp"`
 }
 
@@ -102,6 +103,7 @@ func AddRankData(text string, time time.Time) error {
 		Rank:      text,
 		Game:      m["game"].(string),
 		Number:    m["number"].(string),
+		Style:     m["style"].(string),
 		Timestamp: time,
 	})
 	if err != nil {

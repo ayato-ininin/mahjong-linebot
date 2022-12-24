@@ -72,6 +72,17 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 						}
 					}
 					break
+				case "リアル", "ネット":
+					log.Print("gamestatus:style register")
+					err := firestore.AddGameStatusData(message.Text, "style", time.Now())
+					//リプライを返さないと何度も再送される（と思われる）ので返信
+					if err == nil {
+						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
+						if err != nil {
+							log.Print(err)
+						}
+					}
+					break
 				case "1", "2", "3", "4":
 					err := firestore.AddRankData(message.Text, time.Now())
 					//リプライを返さないと何度も再送される（と思われる）ので返信
