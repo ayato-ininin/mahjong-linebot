@@ -2,7 +2,6 @@ package firestore
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
