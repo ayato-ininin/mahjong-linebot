@@ -107,6 +107,29 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 					}
 					log.Print("rank register")
 					break
+				case "設定":
+					status, err := firestore.GetCurrentStatus()
+					//リプライを返さないと何度も再送される（と思われる）ので返信
+					if err != nil {
+						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("設定を取得できませんでした。")).Do()
+						if err != nil {
+							log.Print(err)
+						}
+					}
+					log.Print("get game status")
+					if status == nil {
+						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("設定がありません。")).Do()
+						if err != nil {
+							log.Print(err)
+						}
+					} else {
+						msg := firestore.CreateStatusMsg(status)
+						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
+						if err != nil {
+							log.Print(err)
+						}
+					}
+					break
 				default:
 					//リプライを返さないと何度も再送される（と思われる）ので返信
 					_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録できません")).Do()

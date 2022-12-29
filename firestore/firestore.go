@@ -11,6 +11,12 @@ import (
 	"google.golang.org/api/option"
 )
 
+type GameStatus struct {
+	Game   string //東風戦、半荘戦
+	Number string //三麻、四麻
+	Style  string //リアル、ネット
+}
+
 type GameResult struct {
 	Rank      string    `firestore:"rank"`
 	Game      string    `firestore:"game"`
@@ -113,4 +119,52 @@ func AddRankData(text string, time time.Time) error {
 
 	// エラーなしは成功
 	return err
+}
+
+/*
+*
+
+	現在のステータスを返す
+
+*
+*/
+func GetCurrentStatus() (*GameStatus, error) {
+	ctx := context.Background()
+	client, err := firebaseInit(ctx)
+	if err != nil {
+		log.Print(err)
+	}
+	dsnap, err := client.Collection("gameStatus").Doc("current").Get(ctx)
+	if err != nil {
+		log.Printf("Failed getting currentStatus: %v", err)
+		return nil, err
+	}
+	m := dsnap.Data()
+	status := GameStatus{
+		Game:   m["game"].(string),
+		Number: m["number"].(string),
+		Style:  m["style"].(string),
+	}
+
+	// 切断
+	defer client.Close()
+
+	// エラーなしは成功
+	return &status, err
+}
+
+/*
+*
+
+	ステータス：レスポンス用メッセージ作成
+
+*
+*/
+func CreateStatusMsg(status *GameStatus) string {
+	msg := "【設定】 \n" +
+		"・試合　　：" + status.Game + "\n" +
+		"・人数　　：" + status.Number + "\n" +
+		"・スタイル：" + status.Style
+
+	return msg
 }
