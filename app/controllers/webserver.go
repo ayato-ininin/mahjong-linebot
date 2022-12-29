@@ -18,28 +18,41 @@ import (
 )
 
 func handler(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "hello world")
+	fmt.Fprintf(w, "hello world:1228")
 }
 
 func lineHandler(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "d world")
+	fmt.Fprintf(w, "callback handler")
 	bot, err := linebot.New(
 		config.Config.ChannelSecret, //channel secret
 		config.Config.AccessToken,   //access token
 	)
 	if err != nil {
 		http.Error(w, "Error init client", http.StatusBadRequest)
-		log.Fatal(err)
+		log.Print(err)
+	}
+
+	//POSTでない場合にエラー
+	if req.Method != "POST" {
+		http.Error(w, "Error bad method ", http.StatusBadRequest)
+		log.Print("Error bad method " + req.Method)
+	}
+
+	//正しいlinebotからリクエストが送られない場合にerrorを返す
+	h := req.Header["User-Agent"][0]
+	if h != "LineBotWebhook/2.0" {
+		http.Error(w, "Error client agent ", http.StatusBadRequest)
+		log.Print("Error client agent " + req.Header["User-Agent"][0])
 	}
 
 	events, err := bot.ParseRequest(req)
 	if err != nil {
 		if err == linebot.ErrInvalidSignature {
 			w.WriteHeader(400)
-			log.Fatal(err)
+			log.Print(err)
 		} else {
 			w.WriteHeader(500)
-			log.Fatal(err)
+			log.Print(err)
 		}
 		return
 	}

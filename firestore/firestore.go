@@ -29,13 +29,13 @@ func firebaseInit(ctx context.Context) (*firestore.Client, error) {
 	sa := option.WithCredentialsFile("./serviceAccounts/mahjong-linebot-a15af8e60164.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		return nil, err
 	}
 
 	client, err := app.Firestore(ctx)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		return nil, err
 	}
 
@@ -54,7 +54,7 @@ func AddGameStatusData(text, param string, time time.Time) error {
 	ctx := context.Background()
 	client, err := firebaseInit(ctx)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	_, err = client.Collection("gameStatus").Doc("current").Update(ctx, []firestore.Update{
 		{
@@ -67,7 +67,7 @@ func AddGameStatusData(text, param string, time time.Time) error {
 		},
 	})
 	if err != nil {
-		log.Fatalf("Failed adding alovelace: %v", err)
+		log.Printf("Failed adding alovelace: %v", err)
 	}
 
 	// 切断
@@ -88,14 +88,14 @@ func AddRankData(text string, time time.Time) error {
 	ctx := context.Background()
 	client, err := firebaseInit(ctx)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	// 切断
 	defer client.Close()
 
 	dsnap, err := client.Collection("gameStatus").Doc("current").Get(ctx)
 	if err != nil {
-		log.Fatalf("Failed getting currentStatus: %v", err)
+		log.Printf("Failed getting currentStatus: %v", err)
 		return err
 	}
 	m := dsnap.Data()
@@ -107,7 +107,7 @@ func AddRankData(text string, time time.Time) error {
 		Timestamp: time,
 	})
 	if err != nil {
-		log.Fatalf("Failed adding alovelace: %v", err)
+		log.Printf("Failed adding alovelace: %v", err)
 		return err
 	}
 
