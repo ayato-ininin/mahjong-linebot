@@ -2,10 +2,12 @@ package firestore
 
 import (
 	"context"
+	"encoding/base64"
 	"log"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"mahjong-linebot/config"
 
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/option"
@@ -31,21 +33,21 @@ const (
 )
 
 func firebaseInit(ctx context.Context) (*firestore.Client, error) {
-	// Use a service account
-	sa := option.WithCredentialsFile("./serviceAccounts/mahjong-linebot-a15af8e60164.json")
+	decJson := getFirebaseServiceAccountKey()
+	sa := option.WithCredentialsJSON(decJson)
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
 
-	client, err := app.Firestore(ctx)
+	faclient, err := app.Firestore(ctx)
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
 
-	return client, nil
+	return faclient, nil
 }
 
 /*
@@ -167,4 +169,20 @@ func CreateStatusMsg(status *GameStatus) string {
 		"・スタイル：" + status.Style
 
 	return msg
+}
+
+/*
+*
+secret managerにbase64でencodeして保存している、
+firebaseの認証用jsonをバイト配列にて返す
+*
+*/
+func getFirebaseServiceAccountKey() []byte {
+	data := *config.GetDataFromSecretManager("MAHJONG_LINEBOT_FIREBASE_SA")
+	dec, err := base64.StdEncoding.DecodeString(string(data))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return dec
 }

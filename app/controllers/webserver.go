@@ -146,5 +146,5 @@ func StartWebServer() error {
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/callback", lineHandler)
 	fmt.Println("起動中...")
-	return http.ListenAndServe(fmt.Sprintf(":%d", config.Config.Port), nil)
+	return http.ListenAndServe(fmt.Sprintf(":%d", 8080), nil)
 }
