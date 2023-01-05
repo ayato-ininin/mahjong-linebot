@@ -23,6 +23,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 
 func lineHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "callback handler")
+	jst := time.FixedZone("JST", 9*60*60)
 	bot, err := linebot.New(
 		config.Config.ChannelSecret, //channel secret
 		config.Config.AccessToken,   //access token
@@ -65,7 +66,7 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 				switch message.Text {
 				case "東風戦", "半荘戦":
 					log.Print("gamestatus:game register")
-					err := firestore.AddGameStatusData(message.Text, "game", time.Now())
+					err := firestore.AddGameStatusData(message.Text, "game", time.Now().In(jst))
 					//リプライを返さないと何度も再送される（と思われる）ので返信
 					if err == nil {
 						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
@@ -76,7 +77,7 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 					break
 				case "三麻", "四麻":
 					log.Print("gamestatus:number register")
-					err := firestore.AddGameStatusData(message.Text, "number", time.Now())
+					err := firestore.AddGameStatusData(message.Text, "number", time.Now().In(jst))
 					//リプライを返さないと何度も再送される（と思われる）ので返信
 					if err == nil {
 						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
@@ -87,7 +88,7 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 					break
 				case "リアル", "ネット":
 					log.Print("gamestatus:style register")
-					err := firestore.AddGameStatusData(message.Text, "style", time.Now())
+					err := firestore.AddGameStatusData(message.Text, "style", time.Now().In(jst))
 					//リプライを返さないと何度も再送される（と思われる）ので返信
 					if err == nil {
 						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
@@ -97,7 +98,7 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 					}
 					break
 				case "1", "2", "3", "4":
-					err := firestore.AddRankData(message.Text, time.Now())
+					err := firestore.AddRankData(message.Text, time.Now().In(jst))
 					//リプライを返さないと何度も再送される（と思われる）ので返信
 					if err == nil {
 						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
