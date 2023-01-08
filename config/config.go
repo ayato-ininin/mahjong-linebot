@@ -2,8 +2,6 @@ package config
 
 import (
 	"log"
-	_ "gopkg.in/ini.v1"
-	_ "os"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"context"
@@ -24,14 +22,6 @@ var Config ConfigList //グローバル変数
 func init() {
 	channel_secret := *GetDataFromSecretManager("LINEBOT_CHANNEL_SECRET")
 	access_token := *GetDataFromSecretManager("LINEBOT_ACCESS_TOKEN")
-
-	// cfg, err := ini.Load("config.ini")
-	// if err != nil {
-	// 	log.Printf("Failed to read file: $v", err)
-	// 	os.Exit(1) //configファイルが読めなかったら出る。
-	// }
-	// channel_secret := cfg.Section("linebot").Key("channel_secret").String()
-	// access_token := cfg.Section("linebot").Key("access_token").String()
 
 	Config = ConfigList{
 		ChannelSecret: string(channel_secret),

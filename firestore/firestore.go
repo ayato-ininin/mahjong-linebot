@@ -35,8 +35,6 @@ const (
 func firebaseInit(ctx context.Context) (*firestore.Client, error) {
 	decJson := getFirebaseServiceAccountKey()
 	sa := option.WithCredentialsJSON(decJson)
-
-	// sa := option.WithCredentialsFile("./serviceAccounts/mahjong-linebot-a15af8e60164.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Print(err)
