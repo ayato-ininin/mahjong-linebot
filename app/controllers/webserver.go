@@ -132,10 +132,24 @@ func lineHandler(w http.ResponseWriter, req *http.Request) {
 					}
 					break
 				default:
-					//リプライを返さないと何度も再送される（と思われる）ので返信
-					_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録できません")).Do()
-					if err != nil {
-						log.Fatal(err)
+					// https://qiita.com/seihmd/items/4a878e7fa340d7963fee
+					str := string([]rune(message.Text)[:2])
+					if str == "場所" {
+						log.Print("gamestatus:place register")
+						err := firestore.AddGameStatusData(string([]rune(message.Text)[2:]), "place", time.Now().In(jst))
+						//リプライを返さないと何度も再送される（と思われる）ので返信
+						if err == nil {
+							_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録")).Do()
+							if err != nil {
+								log.Print(err)
+							}
+						}
+					} else {
+						//リプライを返さないと何度も再送される（と思われる）ので返信
+						_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("登録できません")).Do()
+						if err != nil {
+							log.Fatal(err)
+						}
 					}
 				}
 			}

@@ -17,6 +17,7 @@ type GameStatus struct {
 	Game   string //東風戦、半荘戦
 	Number string //三麻、四麻
 	Style  string //リアル、ネット
+	Place  string //場所
 }
 
 type GameResult struct {
@@ -24,6 +25,7 @@ type GameResult struct {
 	Game      string    `firestore:"game"`
 	Number    string    `firestore:"number"`
 	Style     string    `firestore:"style"`
+	Place     string    `firestore:"place"`
 	Timestamp time.Time `firestore:"timestamp"`
 }
 
@@ -112,6 +114,7 @@ func AddRankData(text string, time time.Time) error {
 		Game:      m["game"].(string),
 		Number:    m["number"].(string),
 		Style:     m["style"].(string),
+		Place:     m["place"].(string),
 		Timestamp: time,
 	})
 	if err != nil {
@@ -146,6 +149,7 @@ func GetCurrentStatus() (*GameStatus, error) {
 		Game:   m["game"].(string),
 		Number: m["number"].(string),
 		Style:  m["style"].(string),
+		Place:  m["place"].(string),
 	}
 
 	// 切断
@@ -164,9 +168,10 @@ func GetCurrentStatus() (*GameStatus, error) {
 */
 func CreateStatusMsg(status *GameStatus) string {
 	msg := "【設定】 \n" +
-		"・試合　　：" + status.Game + "\n" +
+		"・試合　　：" + status.Game + "\n" +
 		"・人数　　：" + status.Number + "\n" +
-		"・スタイル：" + status.Style
+		"・スタイル：" + status.Style + "\n" +
+		"・場所　　：" + status.Place
 
 	return msg
 }
