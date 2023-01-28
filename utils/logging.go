@@ -20,6 +20,36 @@ func LoggingSettings(logFile string) {
 	multiLogFile := io.MultiWriter(os.Stdout, logfile)
 	//出力時の情報を追加で付加したい場合.
 	//定数はビットフラグで定義されているので、| でまとめて設定できます：
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetFlags(0)
 	log.SetOutput(multiLogFile) //出力先
+}
+
+// INFOレベルのログ出力
+func InfoLogEntry(message string) string {
+	entry := &LogEntry{
+			Severity: INFO,
+			Message:  message,
+	}
+
+	return entry.String()
+}
+
+// WARNレベルのログ出力
+func WarnLogEntry(message string) string {
+	entry := &LogEntry{
+			Severity: WARN,
+			Message:  message,
+	}
+
+	return entry.String()
+}
+
+// ERRORレベルのログ出力
+func ErrorLogEntry(message string) string {
+	entry := &LogEntry{
+			Severity: ERROR,
+			Message:  message,
+	}
+
+	return entry.String()
 }

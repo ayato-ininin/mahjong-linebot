@@ -1,10 +1,13 @@
 package config
 
 import (
+	"fmt"
 	"log"
+	logger "mahjong-linebot/utils"
+
+	"context"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
-	"context"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
@@ -42,7 +45,7 @@ func GetDataFromSecretManager(secretName string) *[]byte {
 	ctx := context.Background()
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
-		log.Fatalf("failed to setup client: %v", err)
+		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Secret Manager設定失敗 err=%v", err)))
 	}
 	defer client.Close()
 
@@ -55,7 +58,7 @@ func GetDataFromSecretManager(secretName string) *[]byte {
 	// シークレット上にアクセスする
 	result, err := client.AccessSecretVersion(ctx, req)
 	if err != nil {
-		log.Fatalf("failed to access secret version: %v", err)
+		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed to access secret version err=%v", err)))
 	}
 
 	return &result.Payload.Data
