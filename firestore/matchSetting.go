@@ -7,25 +7,10 @@ import (
 	logger "mahjong-linebot/utils"
 	"strconv"
 	"time"
+	"mahjong-linebot/app/models"
 
 	"cloud.google.com/go/firestore"
 )
-
-type MatchSetting struct {
-	RoomId           string    `firestore:"roomId"`
-	MahjongNumber    string    `firestore:"mahjongNumber"`
-	Uma              string    `firestore:"uma"`
-	Oka              int       `firestore:"oka"`
-	IsYakitori       bool      `firestore:"isYakitori"`
-	IsTobishou       bool      `firestore:"isTobishou"`
-	TobishouPoint    int       `firestore:"tobishouPoint"`
-	Rate             int       `firestore:"rate"`
-	IsTip            bool      `firestore:"isTip"`
-	TipInitialNumber int       `firestore:"tipInitialNumber"`
-	TipRate          int       `firestore:"tipRate"`
-	CreateTimestamp  time.Time `firestore:"createTimestamp"`
-	UpdateTimestamp  time.Time `firestore:"updateTimestamp"`
-}
 
 /*
 *
@@ -36,7 +21,7 @@ type MatchSetting struct {
 
 *
 */
-func AddMatchSetting(m *MatchSetting, time time.Time) error {
+func AddMatchSetting(m *models.MatchSetting, time time.Time) error {
 	ctx := context.Background()
 	client, err := firebaseInit(ctx)
 	if err != nil {
@@ -51,21 +36,10 @@ func AddMatchSetting(m *MatchSetting, time time.Time) error {
 		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Get:nextRoomNumber in firestore err=%v", err)))
 		return err
 	}
-	_, err = client.Collection("matchSettings").Doc(time.Format(RFC3339)[0:19]).Set(ctx, MatchSetting{
-		RoomId:           nextRoomNumber,
-		MahjongNumber:    m.MahjongNumber,
-		Uma:              m.Uma,
-		Oka:              m.Oka,
-		IsYakitori:       m.IsYakitori,
-		IsTobishou:       m.IsTobishou,
-		TobishouPoint:    m.TobishouPoint,
-		Rate:             m.Rate,
-		IsTip:            m.IsTip,
-		TipInitialNumber: m.TipInitialNumber,
-		TipRate:          m.TipRate,
-		CreateTimestamp:  time,
-		UpdateTimestamp:  time,
-	})
+	m.RoomId = nextRoomNumber
+	m.CreateTimestamp = time
+	m.UpdateTimestamp = time
+	_, err = client.Collection("matchSettings").Doc(time.Format(RFC3339)[0:19]).Set(ctx, m)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Add:matchSetting in firestore err=%v", err)))
 		return err
@@ -128,3 +102,13 @@ func changeNextRoomNumber(ctx context.Context, client *firestore.Client, s strin
 	// エラーなしは成功
 	return err
 }
+
+// func GetMatchSettingResponse(status int32, message string, matchSetting *models.MatchSetting) *models.RespMatchSettingModel {
+// 	res := &models.RespMatchSettingModel{
+// 		Status:    status,
+// 		Message:   message,
+// 		MatchSetting: matchSetting,
+// 	}
+
+// 	return res
+// }

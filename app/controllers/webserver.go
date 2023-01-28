@@ -13,6 +13,7 @@ import (
 	"log"
 	"mahjong-linebot/config"
 	"mahjong-linebot/firestore"
+	"mahjong-linebot/app/models"
 	logger "mahjong-linebot/utils"
 	"net/http"
 	"regexp"
@@ -220,13 +221,13 @@ func apiMakeHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFun
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		switch r.Method {
-		case "GET":
-			APIError(w, "Error bad method ", http.StatusBadRequest)
-		case "POST":
+		case http.MethodGet:
+			APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		case http.MethodPost:
 			fn(w, r)
-		case "DELETE":
-			APIError(w, "Error bad method ", http.StatusBadRequest)
-		case "OPTIONS":
+		case http.MethodDelete:
+			APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		case http.MethodOptions:
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")               // Content-Typeヘッダの使用を許可する
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS") // pre-flightリクエストに対応する
 		default:
@@ -240,7 +241,7 @@ func apiPostHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf(logger.InfoLogEntry("[/api/matchSetting] START ==========="))
 	//JSONから構造体へ
 	body, _ := io.ReadAll(r.Body)
-	m := new(firestore.MatchSetting)
+	m := new(models.MatchSetting) //構造体
 	err := json.Unmarshal(body, m)
 	if err != nil {
 		//http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -257,8 +258,10 @@ func apiPostHandler(w http.ResponseWriter, r *http.Request) {
 		APIError(w, "Failed addMatchSetting:", http.StatusInternalServerError)
 		return
 	}
+	res, _ := json.Marshal(m) //json化
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(body)
+	w.WriteHeader(http.StatusCreated)
+	w.Write(res)
 	log.Printf(logger.InfoLogEntry("[/api/matchSetting] END ==========="))
 }
 
