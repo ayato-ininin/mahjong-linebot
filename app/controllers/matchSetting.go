@@ -14,7 +14,8 @@ import (
 
 func matchSettingPost(w http.ResponseWriter, r *http.Request) {
 	// 	//データ保存処理
-	log.Printf(logger.InfoLogEntry("[/v1/api/matchSetting: POST] START ==========="))
+	traceId := logger.GetTraceId(r)
+	log.Printf(logger.InfoLogEntryTest("[/v1/api/matchSetting: POST] START ===========",traceId))
 	//JSONから構造体へ
 	body, _ := io.ReadAll(r.Body)
 	m := new(models.MatchSetting) //構造体

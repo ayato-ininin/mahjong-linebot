@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"log"
+	logpb "google.golang.org/genproto/googleapis/logging/v2"
 )
 
 // ログレベルのCONSTを定義
@@ -21,6 +22,15 @@ type LogEntry struct {
 	Message string `json:"message"`
 }
 
+type LogEntryTest struct {
+	// GCP上でLogLevelを表す
+	Severity string `json:"severity"`
+	// ログの内容
+	Payload string `json:"payload"`
+	SourceLocation *logpb.LogEntrySourceLocation `json:"sourceLocation"`
+	Trace    string `json:"logging.googleapis.com/trace,omitempty"`
+}
+
 // 構造体をJSON形式の文字列へ変換
 // 参考: https://cloud.google.com/run/docs/logging#run_manual_logging-go
 func (l LogEntry) String() string {
@@ -33,3 +43,15 @@ func (l LogEntry) String() string {
 	}
 	return string(out)
 }
+
+func (l LogEntryTest) String() string {
+	if l.Severity == "" {
+		l.Severity = INFO
+	}
+	out, err := json.Marshal(l)
+	if err != nil {
+		log.Printf("json.Marshal: %v", err)
+	}
+	return string(out)
+}
+
