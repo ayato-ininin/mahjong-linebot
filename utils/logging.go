@@ -27,8 +27,8 @@ func LoggingSettings(logFile string) {
 // INFOレベルのログ出力
 func InfoLogEntry(message string) string {
 	entry := &LogEntry{
-			Severity: INFO,
-			Message:  message,
+		Severity: INFO,
+		Message:  message,
 	}
 
 	return entry.String()
@@ -37,8 +37,8 @@ func InfoLogEntry(message string) string {
 // WARNレベルのログ出力
 func WarnLogEntry(message string) string {
 	entry := &LogEntry{
-			Severity: WARN,
-			Message:  message,
+		Severity: WARN,
+		Message:  message,
 	}
 
 	return entry.String()
@@ -47,8 +47,8 @@ func WarnLogEntry(message string) string {
 // ERRORレベルのログ出力
 func ErrorLogEntry(message string) string {
 	entry := &LogEntry{
-			Severity: ERROR,
-			Message:  message,
+		Severity: ERROR,
+		Message:  message,
 	}
 
 	return entry.String()

@@ -12,7 +12,6 @@ import (
 	"google.golang.org/api/option"
 )
 
-
 func firebaseInit(ctx context.Context) (*firestore.Client, error) {
 	decJson := getFirebaseServiceAccountKey()
 	sa := option.WithCredentialsJSON(decJson)

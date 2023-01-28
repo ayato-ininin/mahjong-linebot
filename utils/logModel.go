@@ -25,11 +25,11 @@ type LogEntry struct {
 // 参考: https://cloud.google.com/run/docs/logging#run_manual_logging-go
 func (l LogEntry) String() string {
 	if l.Severity == "" {
-			l.Severity = INFO
+		l.Severity = INFO
 	}
 	out, err := json.Marshal(l)
 	if err != nil {
-			log.Printf("json.Marshal: %v", err)
+		log.Printf("json.Marshal: %v", err)
 	}
 	return string(out)
 }

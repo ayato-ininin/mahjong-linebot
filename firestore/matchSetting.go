@@ -12,19 +12,19 @@ import (
 )
 
 type MatchSetting struct {
-	RoomId string `firestore:"roomId"`
-	MahjongNumber      string    `firestore:"mahjongNumber"`
-  Uma string `firestore:"uma"`
-  Oka int `firestore:"oka"`
-  IsYakitori bool `firestore:"isYakitori"`
-  IsTobishou bool `firestore:"isTobishou"`
-  TobishouPoint int `firestore:"tobishouPoint"`
-  Rate int `firestore:"rate"`
-  IsTip bool `firestore:"isTip"`
-  TipInitialNumber int `firestore:"tipInitialNumber"`
-  TipRate int `firestore:"tipRate"`
-	CreateTimestamp time.Time `firestore:"createTimestamp"`
-	UpdateTimestamp time.Time `firestore:"updateTimestamp"`
+	RoomId           string    `firestore:"roomId"`
+	MahjongNumber    string    `firestore:"mahjongNumber"`
+	Uma              string    `firestore:"uma"`
+	Oka              int       `firestore:"oka"`
+	IsYakitori       bool      `firestore:"isYakitori"`
+	IsTobishou       bool      `firestore:"isTobishou"`
+	TobishouPoint    int       `firestore:"tobishouPoint"`
+	Rate             int       `firestore:"rate"`
+	IsTip            bool      `firestore:"isTip"`
+	TipInitialNumber int       `firestore:"tipInitialNumber"`
+	TipRate          int       `firestore:"tipRate"`
+	CreateTimestamp  time.Time `firestore:"createTimestamp"`
+	UpdateTimestamp  time.Time `firestore:"updateTimestamp"`
 }
 
 /*
@@ -36,7 +36,7 @@ type MatchSetting struct {
 
 *
 */
-func AddMatchSetting(m *MatchSetting,time time.Time) error {
+func AddMatchSetting(m *MatchSetting, time time.Time) error {
 	ctx := context.Background()
 	client, err := firebaseInit(ctx)
 	if err != nil {
@@ -46,32 +46,32 @@ func AddMatchSetting(m *MatchSetting,time time.Time) error {
 	// 切断
 	defer client.Close()
 
-	nextRoomNumber, err := GetNextRoomNumber(ctx,client)
+	nextRoomNumber, err := GetNextRoomNumber(ctx, client)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Get:nextRoomNumber in firestore err=%v", err)))
 		return err
 	}
 	_, err = client.Collection("matchSettings").Doc(time.Format(RFC3339)[0:19]).Set(ctx, MatchSetting{
-		RoomId: nextRoomNumber,
-		MahjongNumber:      m.MahjongNumber,
-		Uma: m.Uma,
-		Oka :m.Oka,
-		IsYakitori:m.IsYakitori,
-		IsTobishou:m.IsTobishou,
-		TobishouPoint:m.TobishouPoint,
-		Rate :m.Rate,
-		IsTip :m.IsTip,
-		TipInitialNumber :m.TipInitialNumber,
-		TipRate:m.TipRate,
-		CreateTimestamp: time,
-		UpdateTimestamp: time,
+		RoomId:           nextRoomNumber,
+		MahjongNumber:    m.MahjongNumber,
+		Uma:              m.Uma,
+		Oka:              m.Oka,
+		IsYakitori:       m.IsYakitori,
+		IsTobishou:       m.IsTobishou,
+		TobishouPoint:    m.TobishouPoint,
+		Rate:             m.Rate,
+		IsTip:            m.IsTip,
+		TipInitialNumber: m.TipInitialNumber,
+		TipRate:          m.TipRate,
+		CreateTimestamp:  time,
+		UpdateTimestamp:  time,
 	})
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Add:matchSetting in firestore err=%v", err)))
 		return err
 	}
 
-	err = changeNextRoomNumber(ctx,client,nextRoomNumber,time)
+	err = changeNextRoomNumber(ctx, client, nextRoomNumber, time)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Change:nextRoomNumber in firestore err=%v", err)))
 	}
@@ -109,7 +109,7 @@ func GetNextRoomNumber(ctx context.Context, client *firestore.Client) (string, e
 
 *
 */
-func changeNextRoomNumber(ctx context.Context,client *firestore.Client, s string, time time.Time) error {
+func changeNextRoomNumber(ctx context.Context, client *firestore.Client, s string, time time.Time) error {
 	i, _ := strconv.Atoi(s)
 	_, err := client.Collection("roomNumber").Doc("current").Update(ctx, []firestore.Update{
 		{

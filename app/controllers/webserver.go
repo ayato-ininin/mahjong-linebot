@@ -21,9 +21,9 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-//jsonでレスポンスしたいならこれ使う。(クライアントで内容詳しく把握するときとかかな。)
-//もっとプロパティ増やす必要あり？
-//http.Errorはstringになる
+// jsonでレスポンスしたいならこれ使う。(クライアントで内容詳しく把握するときとかかな。)
+// もっとプロパティ増やす必要あり？
+// http.Errorはstringになる
 type JSONError struct {
 	Error string `json:"error"`
 	Code  int    `json:"code"` //エラーコード
@@ -230,7 +230,7 @@ func apiMakeHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFun
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")               // Content-Typeヘッダの使用を許可する
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS") // pre-flightリクエストに対応する
 		default:
-				http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		}
 	}
 }
@@ -242,15 +242,15 @@ func apiPostHandler(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
 	m := new(firestore.MatchSetting)
 	err := json.Unmarshal(body, m)
-  if err != nil {
-    //http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err != nil {
+		//http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("[/api/matchSetting] Failed json unmarshal: err=%v", err)))
 		APIError(w, "Failed json unmarshal:", http.StatusInternalServerError)
 		return
-  }
+	}
 
 	jst := time.FixedZone("JST", 9*60*60)
-	err = firestore.AddMatchSetting(m,time.Now().In(jst))
+	err = firestore.AddMatchSetting(m, time.Now().In(jst))
 	//リプライを返さないと何度も再送される（と思われる）ので返信
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("[/api/matchSetting] Failed addMatchSetting: err=%v", err)))
