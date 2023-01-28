@@ -34,7 +34,7 @@ func APIError(w http.ResponseWriter, errMessage string, code int) {
 }
 
 func StartWebServer() error {
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/home", handler)
 	http.HandleFunc("/v1/api/linebot", lineBotApiHandler)
 	http.HandleFunc("/v1/api/matchSetting", matchSettingApiHandler)
 	log.Printf("コンテナ起動...")
@@ -68,7 +68,6 @@ func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API END ==========="))
 }
 
-// ハンドラーのラップ(section13で解説されている。)
 func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId,"MATCHSETTING START ==========="))
