@@ -3,7 +3,6 @@ package firestore
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"log"
 	logger "mahjong-linebot/utils"
 	"time"
@@ -42,11 +41,11 @@ const (
 
 *
 */
-func UpdateGameStatusData(text, param string, time time.Time) error {
-	ctx := context.Background()
+func UpdateGameStatusData(ctx context.Context, text, param string, time time.Time) error {
+	traceId := ctx.Value("traceId").(string)
 	client, err := firebaseInit(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("firebaseInit失敗 err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "firebaseInit失敗", err))
 		return err
 	}
 	_, err = client.Collection("gameStatus").Doc("current").Update(ctx, []firestore.Update{
@@ -60,7 +59,7 @@ func UpdateGameStatusData(text, param string, time time.Time) error {
 		},
 	})
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Change:gameStatus in firestore err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Change:gameStatus in firestore", err))
 		return err
 	}
 
@@ -78,11 +77,11 @@ func UpdateGameStatusData(text, param string, time time.Time) error {
 
 *
 */
-func AddRankData(text string, time time.Time) error {
-	ctx := context.Background()
+func AddRankData(ctx context.Context, text string, time time.Time) error {
+	traceId := ctx.Value("traceId").(string)
 	client, err := firebaseInit(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("firebaseInit失敗 err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "firebaseInit失敗", err))
 		return err
 	}
 	// 切断
@@ -90,7 +89,7 @@ func AddRankData(text string, time time.Time) error {
 
 	dsnap, err := client.Collection("gameStatus").Doc("current").Get(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Get:gameStatus in firestore err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Get:gameStatus in firestore", err))
 		return err
 	}
 	m := dsnap.Data()
@@ -103,7 +102,7 @@ func AddRankData(text string, time time.Time) error {
 		Timestamp: time,
 	})
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Add:ranks in firestore err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Add:ranks in firestore", err))
 		return err
 	}
 
@@ -118,16 +117,16 @@ func AddRankData(text string, time time.Time) error {
 
 *
 */
-func GetCurrentStatus() (*GameStatus, error) {
-	ctx := context.Background()
+func GetCurrentStatus(ctx context.Context) (*GameStatus, error) {
+	traceId := ctx.Value("traceId").(string)
 	client, err := firebaseInit(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("firebaseInit失敗 err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "firebaseInit失敗", err))
 		return nil, err
 	}
 	dsnap, err := client.Collection("gameStatus").Doc("current").Get(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Get:gameStatus in firestore err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Get:gameStatus in firestore", err))
 		return nil, err
 	}
 	m := dsnap.Data()
@@ -172,7 +171,7 @@ func getFirebaseServiceAccountKey() []byte {
 	data := *config.GetDataFromSecretManager("MAHJONG_LINEBOT_FIREBASE_SA")
 	dec, err := base64.StdEncoding.DecodeString(string(data))
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed firebaseSA decode: err=%v", err)))
+		log.Printf("Failed firebaseSA decode: err=%v", err)
 	}
 
 	return dec

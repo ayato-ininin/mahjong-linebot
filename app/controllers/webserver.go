@@ -37,36 +37,41 @@ func StartWebServer() error {
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/v1/api/linebot", lineBotApiHandler)
 	http.HandleFunc("/v1/api/matchSetting", matchSettingApiHandler)
-	log.Printf(logger.InfoLogEntry("コンテナ起動..."))
+	log.Printf("コンテナ起動...")
 	return http.ListenAndServe(fmt.Sprintf(":%d", 8080), nil)
 }
 
 func handler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "hello world")
-	log.Printf(logger.InfoLogEntry("Hello world"))
+	log.Printf("Hello world")
 }
 
 func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
+	traceId := logger.GetTraceId(r)
+	log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API START ==========="))
 	switch r.Method {
 	case http.MethodPost:
 			//正しいlinebotからリクエストが送られない場合にerrorを返す
 		h := r.Header["User-Agent"][0]
 		if h != "LineBotWebhook/2.0" {
 			http.Error(w, "Error client agent ", http.StatusBadRequest)
-			log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Error client agent " + r.Header["User-Agent"][0])))
+			log.Printf(logger.ErrorLogEntry(traceId, "Error client agent " + r.Header["User-Agent"][0]))
 			return
 		} else {
 			lineBotApiPost(w, r)
 		}
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Error bad method " + r.Method)))
+		log.Printf(logger.ErrorLogEntry(traceId, "Error bad method " + r.Method))
 		return
 	}
+	log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API END ==========="))
 }
 
 // ハンドラーのラップ(section13で解説されている。)
 func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
+	traceId := logger.GetTraceId(r)
+	log.Printf(logger.InfoLogEntry(traceId,"MATCHSETTING START ==========="))
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch r.Method {
 	case http.MethodGet:
@@ -79,10 +84,13 @@ func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case http.MethodOptions:
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")               // Content-Typeヘッダの使用を許可する
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS") // pre-flightリクエストに対応する
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST") // pre-flightリクエストに対応する
 		//これプリフライトして一回目のレスポンス何もないから、クライアント側一回目失敗するかも。
+		w.WriteHeader(http.StatusOK)
+		return
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
+	log.Printf(logger.InfoLogEntry(traceId,"MATCHSETTING END ==========="))
 }

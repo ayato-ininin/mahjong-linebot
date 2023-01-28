@@ -2,7 +2,6 @@ package firestore
 
 import (
 	"context"
-	"fmt"
 	"log"
 	logger "mahjong-linebot/utils"
 	"strconv"
@@ -21,11 +20,12 @@ import (
 
 *
 */
-func AddMatchSetting(m *models.MatchSetting, time time.Time) error {
-	ctx := context.Background()
+func AddMatchSetting(ctx context.Context, m *models.MatchSetting, time time.Time) error {
+	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
+	traceId := ctx.Value("traceId").(string)
 	client, err := firebaseInit(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("firebaseInit失敗 err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "firebaseInit失敗", err))
 		return err
 	}
 	// 切断
@@ -33,7 +33,7 @@ func AddMatchSetting(m *models.MatchSetting, time time.Time) error {
 
 	nextRoomNumber, err := GetNextRoomNumber(ctx, client)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Get:nextRoomNumber in firestore err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Get:nextRoomNumber in firestore", err))
 		return err
 	}
 	m.RoomId = nextRoomNumber
@@ -41,13 +41,13 @@ func AddMatchSetting(m *models.MatchSetting, time time.Time) error {
 	m.UpdateTimestamp = time
 	_, err = client.Collection("matchSettings").Doc(time.Format(RFC3339)[0:19]).Set(ctx, m)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Add:matchSetting in firestore err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Add:matchSetting in firestore", err))
 		return err
 	}
 
 	err = changeNextRoomNumber(ctx, client, nextRoomNumber, time)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Failed Change:nextRoomNumber in firestore err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Change:nextRoomNumber in firestore", err))
 	}
 
 	// エラーなしは成功

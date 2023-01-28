@@ -2,7 +2,6 @@ package firestore
 
 import (
 	"context"
-	"fmt"
 	"log"
 	logger "mahjong-linebot/utils"
 
@@ -13,17 +12,18 @@ import (
 )
 
 func firebaseInit(ctx context.Context) (*firestore.Client, error) {
+	traceId := ctx.Value("traceId").(string)
 	decJson := getFirebaseServiceAccountKey()
 	sa := option.WithCredentialsJSON(decJson)
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("Firebase.NewApp失敗 err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "Firebase.NewApp失敗", err))
 		return nil, err
 	}
 
 	faclient, err := app.Firestore(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(fmt.Sprintf("app.Firestore失敗 err=%v", err)))
+		log.Printf(logger.ErrorLogEntry(traceId, "app.Firestore失敗", err))
 		return nil, err
 	}
 

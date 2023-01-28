@@ -33,58 +33,7 @@ func LoggingSettings(logFile string) {
 }
 
 // INFOレベルのログ出力
-func InfoLogEntry(message string) string {
-	entry := &LogEntry{
-		Severity: INFO,
-		Message:  message,
-	}
-
-	return entry.String()
-}
-
-// WARNレベルのログ出力
-func WarnLogEntry(message string) string {
-	entry := &LogEntry{
-		Severity: WARN,
-		Message:  message,
-	}
-
-	return entry.String()
-}
-
-// ERRORレベルのログ出力
-func ErrorLogEntry(message string) string {
-	entry := &LogEntry{
-		Severity: ERROR,
-		Message:  message,
-	}
-
-	return entry.String()
-}
-
-// ERRORレベルのログ出力
-func ErrorLogEntryWithoutTrace(message string) string {
-	entry := &LogEntry{
-		Severity: ERROR,
-		Message:  message,
-	}
-
-	return entry.String()
-}
-
-// http "X-Cloud-Trace-Context" headerからtraceIdを抜き出す
-func GetTraceId(r *http.Request) string {
-	traceHeader := r.Header.Get("X-Cloud-Trace-Context")
-	traceParts := strings.Split(traceHeader, "/")
-	traceId := ""
-	if len(traceParts) > 0 {
-			traceId = traceParts[0]
-	}
-	return traceId
-}
-
-// INFOレベルのログ出力
-func InfoLogEntryTest(message string, traceId string, args ...interface{}) string {
+func InfoLogEntry(traceId string, message string, args ...interface{}) string {
 	pt, file, line, ok := runtime.Caller(1)
 	if !ok {
 		file = "???"
@@ -105,4 +54,73 @@ func InfoLogEntryTest(message string, traceId string, args ...interface{}) strin
 	}
 
 	return entry.String()
+}
+
+// WARNレベルのログ出力
+func WarnLogEntry(traceId string, message string, args ...interface{}) string {
+	pt, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "???"
+		line = 0
+	}
+	rFuncName := regexp.MustCompile("^.*/")
+	funcName := rFuncName.ReplaceAllString(runtime.FuncForPC(pt).Name(), "")
+	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+ message, args...)
+	entry := &LogEntryTest{
+		Severity: WARN,
+		Message: msg,
+		Trace:     traceId,
+		SourceLocation: &logpb.LogEntrySourceLocation{
+			File:     file,
+			Line:     int64(line),
+			Function: runtime.FuncForPC(pt).Name(),
+		},
+	}
+
+	return entry.String()
+}
+
+// ERRORレベルのログ出力
+func ErrorLogEntry(traceId string, message string, args ...interface{}) string {
+	pt, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "???"
+		line = 0
+	}
+	rFuncName := regexp.MustCompile("^.*/")
+	funcName := rFuncName.ReplaceAllString(runtime.FuncForPC(pt).Name(), "")
+	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+ message, args...)
+	entry := &LogEntryTest{
+		Severity: ERROR,
+		Message: msg,
+		Trace:     traceId,
+		SourceLocation: &logpb.LogEntrySourceLocation{
+			File:     file,
+			Line:     int64(line),
+			Function: runtime.FuncForPC(pt).Name(),
+		},
+	}
+
+	return entry.String()
+}
+
+// ERRORレベルのログ出力
+func ErrorLogEntryWithoutTrace(message string, traceId string, args ...interface{}) string {
+	entry := &LogEntry{
+		Severity: ERROR,
+		Message:  message,
+	}
+
+	return entry.String()
+}
+
+// http "X-Cloud-Trace-Context" headerからtraceIdを抜き出す
+func GetTraceId(r *http.Request) string {
+	traceHeader := r.Header.Get("X-Cloud-Trace-Context")
+	traceParts := strings.Split(traceHeader, "/")
+	traceId := ""
+	if len(traceParts) > 0 {
+			traceId = traceParts[0]
+	}
+	return traceId
 }
