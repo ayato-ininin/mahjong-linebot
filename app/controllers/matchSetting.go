@@ -36,6 +36,7 @@ func matchSettingPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res, _ := json.Marshal(m) //json化
+	log.Printf(logger.InfoLogEntryTest("追加データ : ",traceId, m))
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(res)

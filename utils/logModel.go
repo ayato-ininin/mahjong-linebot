@@ -26,7 +26,7 @@ type LogEntryTest struct {
 	// GCP上でLogLevelを表す
 	Severity string `json:"severity"`
 	// ログの内容
-	Payload string `json:"payload"`
+	Message string `json:"message"`
 	SourceLocation *logpb.LogEntrySourceLocation `json:"sourceLocation"`
 	Trace    string `json:"logging.googleapis.com/trace,omitempty"`
 }

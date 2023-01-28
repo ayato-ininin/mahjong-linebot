@@ -92,10 +92,10 @@ func InfoLogEntryTest(message string, traceId string, args ...interface{}) strin
 	}
 	rFuncName := regexp.MustCompile("^.*/")
 	funcName := rFuncName.ReplaceAllString(runtime.FuncForPC(pt).Name(), "")
-	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+message, args...)
+	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+ message, args...)
 	entry := &LogEntryTest{
 		Severity: INFO,
-		Payload: msg,
+		Message: msg,
 		Trace:     traceId,
 		SourceLocation: &logpb.LogEntrySourceLocation{
 			File:     file,

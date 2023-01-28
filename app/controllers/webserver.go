@@ -80,6 +80,7 @@ func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodOptions:
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")               // Content-Typeヘッダの使用を許可する
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS") // pre-flightリクエストに対応する
+		//これプリフライトして一回目のレスポンス何もないから、クライアント側一回目失敗するかも。
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
