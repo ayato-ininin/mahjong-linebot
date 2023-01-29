@@ -7,31 +7,12 @@ https://github.com/line/line-bot-sdk-go
 */
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	logger "mahjong-linebot/utils"
+	logger "mahjong-linebot/logs"
+	"mahjong-linebot/utils"
 	"net/http"
 )
-
-// jsonでレスポンスしたいならこれ使う。(クライアントで内容詳しく把握するときとかかな。)
-// もっとプロパティ増やす必要あり？
-// http.Errorはstringになる
-type JSONError struct {
-	Error string `json:"error"`
-	Code  int    `json:"code"` //エラーコード
-}
-
-// jsonになにかあったときに、jsonで返すapiエラー自作
-func APIError(w http.ResponseWriter, errMessage string, code int) {
-	w.Header().Set("Content-Type", "application/json") //レスポンスヘッダ
-	w.WriteHeader(code)                                //エラーコード
-	jsonError, err := json.Marshal(JSONError{Error: errMessage, Code: code})
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Write(jsonError) //jsonをreturn
-}
 
 func StartWebServer() error {
 	http.HandleFunc("/home", handler)
@@ -41,7 +22,8 @@ func StartWebServer() error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", 8080), nil)
 }
 
-func handler(w http.ResponseWriter, req *http.Request) {
+func handler(w http.ResponseWriter, r *http.Request) {
+	//http.Redirect(w, r, "/", http.StatusFound)リダイレクト
 	fmt.Fprintf(w, "hello world")
 	log.Printf("Hello world")
 }
@@ -54,14 +36,14 @@ func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
 			//正しいlinebotからリクエストが送られない場合にerrorを返す
 		h := r.Header["User-Agent"][0]
 		if h != "LineBotWebhook/2.0" {
-			http.Error(w, "Error client agent ", http.StatusBadRequest)
+			utils.APIError(w, "Error client agent", http.StatusBadRequest)
 			log.Printf(logger.ErrorLogEntry(traceId, "Error client agent " + r.Header["User-Agent"][0]))
 			return
 		} else {
 			lineBotApiPost(w, r)
 		}
 	default:
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		log.Printf(logger.ErrorLogEntry(traceId, "Error bad method " + r.Method))
 		return
 	}
@@ -74,12 +56,12 @@ func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch r.Method {
 	case http.MethodGet:
-		APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	case http.MethodPost:
 		matchSettingPost(w, r)
 	case http.MethodDelete:
-		APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	case http.MethodOptions:
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")               // Content-Typeヘッダの使用を許可する
@@ -88,7 +70,7 @@ func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	default:
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 	log.Printf(logger.InfoLogEntry(traceId,"MATCHSETTING END ==========="))

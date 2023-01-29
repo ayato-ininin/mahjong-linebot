@@ -11,7 +11,8 @@ import (
 	"log"
 	"mahjong-linebot/config"
 	"mahjong-linebot/firestore"
-	logger "mahjong-linebot/utils"
+	logger "mahjong-linebot/logs"
+	"mahjong-linebot/utils"
 	"net/http"
 	"time"
 
@@ -29,17 +30,17 @@ func lineBotApiPost(w http.ResponseWriter, r *http.Request) {
 		config.Config.AccessToken,   //access token
 	)
 	if err != nil {
-		http.Error(w, "Error init client", http.StatusBadRequest)
+		utils.APIError(w, "Error init client", http.StatusBadRequest)
 		log.Printf(logger.ErrorLogEntry(traceId, "linebotの認証に失敗", err))
 	}
 
 	events, err := bot.ParseRequest(r)
 	if err != nil {
 		if err == linebot.ErrInvalidSignature {
-			APIError(w, "Invalid signature:", http.StatusBadRequest)
+			utils.APIError(w, "Invalid signature", http.StatusBadRequest)
 			log.Printf(logger.ErrorLogEntry(traceId, "Invalid signature", err))
 		} else {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			utils.APIError(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			log.Printf(logger.ErrorLogEntry(traceId, "Internal server error", err))
 		}
 		return

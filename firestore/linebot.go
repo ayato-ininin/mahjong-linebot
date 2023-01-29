@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"log"
-	logger "mahjong-linebot/utils"
+	logger "mahjong-linebot/logs"
 	"time"
 
 	"mahjong-linebot/config"

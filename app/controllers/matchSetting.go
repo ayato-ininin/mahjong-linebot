@@ -7,7 +7,8 @@ import (
 	"log"
 	"mahjong-linebot/app/models"
 	"mahjong-linebot/firestore"
-	logger "mahjong-linebot/utils"
+	logger "mahjong-linebot/logs"
+	"mahjong-linebot/utils"
 	"net/http"
 	"time"
 )
@@ -22,9 +23,8 @@ func matchSettingPost(w http.ResponseWriter, r *http.Request) {
 	m := new(models.MatchSetting) //構造体
 	err := json.Unmarshal(body, m)
 	if err != nil {
-		//http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json unmarshal", err))
-		APIError(w, "Failed json unmarshal:", http.StatusInternalServerError)
+		utils.APIError(w, "Failed json unmarshal", http.StatusInternalServerError)
 		return
 	}
 
@@ -33,7 +33,7 @@ func matchSettingPost(w http.ResponseWriter, r *http.Request) {
 	//リプライを返さないと何度も再送される（と思われる）ので返信
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId,"Failed addMatchSetting", err))
-		APIError(w, "Failed addMatchSetting:", http.StatusInternalServerError)
+		utils.APIError(w, "Failed addMatchSetting", http.StatusInternalServerError)
 		return
 	}
 	res, _ := json.Marshal(m) //json化
