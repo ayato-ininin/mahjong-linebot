@@ -2,6 +2,7 @@ package logs
 
 import (
 	"fmt"
+	logpb "google.golang.org/genproto/googleapis/logging/v2"
 	"io"
 	"log"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	logpb "google.golang.org/genproto/googleapis/logging/v2"
 )
 
 func LoggingSettings(logFile string) {
@@ -41,11 +41,11 @@ func InfoLogEntry(traceId string, message string, args ...interface{}) string {
 	}
 	rFuncName := regexp.MustCompile("^.*/")
 	funcName := rFuncName.ReplaceAllString(runtime.FuncForPC(pt).Name(), "")
-	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+ message, args...)
+	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+message, args...)
 	entry := &LogEntryTest{
 		Severity: INFO,
-		Message: msg,
-		Trace:     traceId,
+		Message:  msg,
+		Trace:    traceId,
 		SourceLocation: &logpb.LogEntrySourceLocation{
 			File:     file,
 			Line:     int64(line),
@@ -65,11 +65,11 @@ func WarnLogEntry(traceId string, message string, args ...interface{}) string {
 	}
 	rFuncName := regexp.MustCompile("^.*/")
 	funcName := rFuncName.ReplaceAllString(runtime.FuncForPC(pt).Name(), "")
-	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+ message, args...)
+	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+message, args...)
 	entry := &LogEntryTest{
 		Severity: WARN,
-		Message: msg,
-		Trace:     traceId,
+		Message:  msg,
+		Trace:    traceId,
 		SourceLocation: &logpb.LogEntrySourceLocation{
 			File:     file,
 			Line:     int64(line),
@@ -89,11 +89,11 @@ func ErrorLogEntry(traceId string, message string, args ...interface{}) string {
 	}
 	rFuncName := regexp.MustCompile("^.*/")
 	funcName := rFuncName.ReplaceAllString(runtime.FuncForPC(pt).Name(), "")
-	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+ message, args...)
+	msg := fmt.Sprintf("["+path.Base(file)+":"+strconv.Itoa(line)+":"+funcName+"] - "+message, args...)
 	entry := &LogEntryTest{
 		Severity: ERROR,
-		Message: msg,
-		Trace:     traceId,
+		Message:  msg,
+		Trace:    traceId,
 		SourceLocation: &logpb.LogEntrySourceLocation{
 			File:     file,
 			Line:     int64(line),
@@ -120,7 +120,7 @@ func GetTraceId(r *http.Request) string {
 	traceParts := strings.Split(traceHeader, "/")
 	traceId := ""
 	if len(traceParts) > 0 {
-			traceId = traceParts[0]
+		traceId = traceParts[0]
 	}
 	return traceId
 }

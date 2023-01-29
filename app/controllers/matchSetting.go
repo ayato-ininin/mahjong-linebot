@@ -32,12 +32,12 @@ func matchSettingPost(w http.ResponseWriter, r *http.Request) {
 	err = firestore.AddMatchSetting(ctx, m, time.Now().In(jst))
 	//リプライを返さないと何度も再送される（と思われる）ので返信
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId,"Failed addMatchSetting", err))
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed addMatchSetting", err))
 		utils.APIError(w, "Failed addMatchSetting", http.StatusInternalServerError)
 		return
 	}
 	res, _ := json.Marshal(m) //json化
-	log.Printf(logger.InfoLogEntry(traceId, "追加データ : "+ string(res)))
+	log.Printf(logger.InfoLogEntry(traceId, "追加データ : "+string(res)))
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(res)

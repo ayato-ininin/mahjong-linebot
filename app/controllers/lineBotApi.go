@@ -19,7 +19,6 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-
 func lineBotApiPost(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)

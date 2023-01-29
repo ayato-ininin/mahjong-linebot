@@ -33,18 +33,18 @@ func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API START ==========="))
 	switch r.Method {
 	case http.MethodPost:
-			//正しいlinebotからリクエストが送られない場合にerrorを返す
+		//正しいlinebotからリクエストが送られない場合にerrorを返す
 		h := r.Header["User-Agent"][0]
 		if h != "LineBotWebhook/2.0" {
 			utils.APIError(w, "Error client agent", http.StatusBadRequest)
-			log.Printf(logger.ErrorLogEntry(traceId, "Error client agent " + r.Header["User-Agent"][0]))
+			log.Printf(logger.ErrorLogEntry(traceId, "Error client agent "+r.Header["User-Agent"][0]))
 			return
 		} else {
 			lineBotApiPost(w, r)
 		}
 	default:
 		utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		log.Printf(logger.ErrorLogEntry(traceId, "Error bad method " + r.Method))
+		log.Printf(logger.ErrorLogEntry(traceId, "Error bad method "+r.Method))
 		return
 	}
 	log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API END ==========="))
@@ -52,7 +52,7 @@ func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
 
 func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
-	log.Printf(logger.InfoLogEntry(traceId,"MATCHSETTING START ==========="))
+	log.Printf(logger.InfoLogEntry(traceId, "MATCHSETTING START ==========="))
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch r.Method {
 	case http.MethodGet:
@@ -64,8 +64,8 @@ func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	case http.MethodOptions:
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")               // Content-Typeヘッダの使用を許可する
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST") // pre-flightリクエストに対応する
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type") // Content-Typeヘッダの使用を許可する
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST")    // pre-flightリクエストに対応する
 		//これプリフライトして一回目のレスポンス何もないから、クライアント側一回目失敗するかも。
 		w.WriteHeader(http.StatusOK)
 		return
@@ -73,5 +73,5 @@ func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 		utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
-	log.Printf(logger.InfoLogEntry(traceId,"MATCHSETTING END ==========="))
+	log.Printf(logger.InfoLogEntry(traceId, "MATCHSETTING END ==========="))
 }

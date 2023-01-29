@@ -14,8 +14,8 @@ type JSONError struct {
 }
 
 // エラーがあった際に、jsonで返すapiエラー自作
-//http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-//http.Errorはstringになるので、json化
+// http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+// http.Errorはstringになるので、json化
 func APIError(w http.ResponseWriter, errMessage string, code int) {
 	w.Header().Set("Content-Type", "application/json") //レスポンスヘッダ
 	w.WriteHeader(code)                                //エラーコード
@@ -25,4 +25,3 @@ func APIError(w http.ResponseWriter, errMessage string, code int) {
 	}
 	w.Write(jsonError) //jsonをreturn
 }
-

@@ -2,8 +2,8 @@ package logs
 
 import (
 	"encoding/json"
-	"log"
 	logpb "google.golang.org/genproto/googleapis/logging/v2"
+	"log"
 )
 
 // ログレベルのCONSTを定義
@@ -26,9 +26,9 @@ type LogEntryTest struct {
 	// GCP上でLogLevelを表す
 	Severity string `json:"severity"`
 	// ログの内容
-	Message string `json:"message"`
+	Message        string                        `json:"message"`
 	SourceLocation *logpb.LogEntrySourceLocation `json:"sourceLocation"`
-	Trace    string `json:"logging.googleapis.com/trace,omitempty"`
+	Trace          string                        `json:"logging.googleapis.com/trace,omitempty"`
 }
 
 // 構造体をJSON形式の文字列へ変換
@@ -54,4 +54,3 @@ func (l LogEntryTest) String() string {
 	}
 	return string(out)
 }
-
