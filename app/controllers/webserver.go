@@ -12,6 +12,7 @@ import (
 	logger "mahjong-linebot/logs"
 	"mahjong-linebot/utils"
 	"net/http"
+	"strconv"
 )
 
 func StartWebServer() error {
@@ -56,7 +57,19 @@ func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch r.Method {
 	case http.MethodGet:
-		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		v := r.URL.Query().Get("roomid")
+		if v == "" {
+			utils.APIError(w, "Don't exist query", http.StatusBadRequest)
+			return
+		}
+		roomid, err := strconv.Atoi(v)
+		if err != nil {
+			//クエリパラメータが数字でない
+			log.Printf(logger.ErrorLogEntry(traceId, "Not valid query: required number", err))
+			utils.APIError(w, "Not valid query: required number", http.StatusBadRequest)
+			return
+		}
+		getMatchSettingByRoomId(w, r, roomid)
 		return
 	case http.MethodPost:
 		matchSettingPost(w, r)

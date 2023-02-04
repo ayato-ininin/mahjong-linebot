@@ -2,6 +2,7 @@ package firestore
 
 import (
 	"context"
+	"errors"
 	"log"
 	"mahjong-linebot/app/models"
 	logger "mahjong-linebot/logs"
@@ -9,7 +10,72 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
 )
+
+/*
+*
+
+	firestoreの設定をroomIdを元に検索
+	roomIdをfirestoreから受け取るときは、int64になる。(firestoreの仕様)
+
+*
+*/
+func GetMatchSetting(ctx context.Context, roomId int) (*models.MatchSetting, error) {
+	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
+	traceId := ctx.Value("traceId").(string)
+	client, err := firebaseInit(ctx)
+	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "firebaseInit失敗", err))
+		return nil, err
+	}
+	// 切断
+	defer client.Close()
+
+	// https://cloud.google.com/firestore/docs/query-data/queries?hl=ja
+	// ここ、他のfirestoreアクセスできてるのに、permision deniedでてて、結果、IAMの権限不足やった。
+	// 最小単位にするのもいいけど、こういう余計なエラーで止まるのは手間。
+	iter := client.Collection("matchSettings").Where("roomId", "==", roomId).Limit(1).Documents(ctx)
+	var docList []models.MatchSetting
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			log.Printf(logger.ErrorLogEntry(traceId, "Failed documents iterator", err))
+			return nil, err
+		}
+		m := doc.Data()
+		ms := models.MatchSetting{
+			RoomId:           m["roomId"].(int64),
+			MahjongNumber:    m["mahjongNumber"].(string),
+			Name1:            m["name1"].(string),
+			Name2:            m["name2"].(string),
+			Name3:            m["name3"].(string),
+			Name4:            m["name4"].(string),
+			Uma:              m["uma"].(string),
+			Oka:              m["oka"].(int64),
+			IsYakitori:       m["isYakitori"].(bool),
+			IsTobishou:       m["isTobishou"].(bool),
+			TobishouPoint:    m["tobishouPoint"].(int64),
+			Rate:             m["rate"].(int64),
+			IsTip:            m["isTip"].(bool),
+			TipInitialNumber: m["tipInitialNumber"].(int64),
+			TipRate:          m["tipRate"].(int64),
+			CreateTimestamp:  m["createTimestamp"].(time.Time),
+			UpdateTimestamp:  m["updateTimestamp"].(time.Time),
+		}
+		docList = append(docList, ms)
+	}
+	if len(docList) == 0 {
+		log.Printf(logger.ErrorLogEntry(traceId, "Not Found matchSetting data"))
+		return nil, errors.New("Not found roomId in database" + strconv.Itoa(roomId))
+	}
+
+	// エラーなしは成功
+	return &docList[0], err
+}
 
 /*
 *
@@ -61,13 +127,13 @@ func AddMatchSetting(ctx context.Context, m *models.MatchSetting, time time.Time
 
 *
 */
-func GetNextRoomNumber(ctx context.Context, client *firestore.Client) (string, error) {
+func GetNextRoomNumber(ctx context.Context, client *firestore.Client) (int64, error) {
 	dsnap, err := client.Collection("roomNumber").Doc("current").Get(ctx)
 	if err != nil {
-		return "0", err
+		return 0, err
 	}
 	m := dsnap.Data()
-	nextRoomNumber := m["nextRoomNumber"].(string)
+	nextRoomNumber := m["nextRoomNumber"].(int64)
 
 	// エラーなしは成功
 	return nextRoomNumber, err
@@ -83,12 +149,11 @@ func GetNextRoomNumber(ctx context.Context, client *firestore.Client) (string, e
 
 *
 */
-func changeNextRoomNumber(ctx context.Context, client *firestore.Client, s string, time time.Time) error {
-	i, _ := strconv.Atoi(s)
+func changeNextRoomNumber(ctx context.Context, client *firestore.Client, i int64, time time.Time) error {
 	_, err := client.Collection("roomNumber").Doc("current").Update(ctx, []firestore.Update{
 		{
 			Path:  "nextRoomNumber",
-			Value: strconv.Itoa(i + 1),
+			Value: i + 1,
 		},
 		{
 			Path:  "timestamp",
