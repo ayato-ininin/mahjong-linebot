@@ -1,4 +1,4 @@
-package controllers
+package webServer
 
 /*
 【参考文献】
@@ -9,6 +9,7 @@ https://github.com/line/line-bot-sdk-go
 import (
 	"fmt"
 	"log"
+	controllers "mahjong-linebot/app/controllers"
 	logger "mahjong-linebot/logs"
 	"mahjong-linebot/utils"
 	"net/http"
@@ -41,7 +42,7 @@ func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf(logger.ErrorLogEntry(traceId, "Error client agent "+r.Header["User-Agent"][0]))
 			return
 		} else {
-			lineBotApiPost(w, r)
+			controllers.LineBotApiPost(w, r)
 		}
 	default:
 		utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
@@ -69,10 +70,10 @@ func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 			utils.APIError(w, "Not valid query: required number", http.StatusBadRequest)
 			return
 		}
-		getMatchSettingByRoomId(w, r, roomid)
+		controllers.GetMatchSettingByRoomId(w, r, roomid)
 		return
 	case http.MethodPost:
-		matchSettingPost(w, r)
+		controllers.MatchSettingPost(w, r)
 	case http.MethodDelete:
 		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return

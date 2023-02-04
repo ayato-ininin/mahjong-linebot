@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func getMatchSettingByRoomId(w http.ResponseWriter, r *http.Request, roomId int) {
+func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request, roomId int) {
 	// 	//データ保存処理
 	traceId := logger.GetTraceId(r)
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
@@ -33,7 +33,7 @@ func getMatchSettingByRoomId(w http.ResponseWriter, r *http.Request, roomId int)
 	w.Write(res)
 }
 
-func matchSettingPost(w http.ResponseWriter, r *http.Request) {
+func MatchSettingPost(w http.ResponseWriter, r *http.Request) {
 	// 	//データ保存処理
 	traceId := logger.GetTraceId(r)
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
