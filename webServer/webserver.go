@@ -9,7 +9,7 @@ https://github.com/line/line-bot-sdk-go
 import (
 	"fmt"
 	"log"
-	controllers "mahjong-linebot/app/controllers"
+	"mahjong-linebot/app/controllers"
 	logger "mahjong-linebot/logs"
 	"mahjong-linebot/utils"
 	"net/http"

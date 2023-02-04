@@ -10,7 +10,7 @@ import (
 	"context"
 	"log"
 	"mahjong-linebot/config"
-	"mahjong-linebot/firestore"
+	"mahjong-linebot/app/firestore"
 	logger "mahjong-linebot/logs"
 	"mahjong-linebot/utils"
 	"net/http"

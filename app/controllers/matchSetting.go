@@ -6,7 +6,7 @@ import (
 	"io"
 	"log"
 	"mahjong-linebot/app/models"
-	"mahjong-linebot/firestore"
+	"mahjong-linebot/app/firestore"
 	logger "mahjong-linebot/logs"
 	"mahjong-linebot/utils"
 	"net/http"
