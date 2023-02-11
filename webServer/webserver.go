@@ -20,6 +20,7 @@ func StartWebServer() error {
 	http.HandleFunc("/home", handler)
 	http.HandleFunc("/v1/api/linebot", lineBotApiHandler)
 	http.HandleFunc("/v1/api/matchSetting", matchSettingApiHandler)
+	http.HandleFunc("/v1/api/matchResult", matchResultApiHandler)
 	log.Printf("コンテナ起動...")
 	return http.ListenAndServe(fmt.Sprintf(":%d", 8080), nil)
 }
@@ -88,4 +89,30 @@ func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf(logger.InfoLogEntry(traceId, "MATCHSETTING END ==========="))
+}
+
+func matchResultApiHandler(w http.ResponseWriter, r *http.Request) {
+	traceId := logger.GetTraceId(r)
+	log.Printf(logger.InfoLogEntry(traceId, "MATCHRESULT START ==========="))
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	switch r.Method {
+	case http.MethodGet:
+		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	case http.MethodPost:
+		controllers.MatchResultPost(w, r)
+	case http.MethodDelete:
+		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	case http.MethodOptions:
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type") // Content-Typeヘッダの使用を許可する
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST")    // pre-flightリクエストに対応する
+		//これプリフライトして一回目のレスポンス何もないから、クライアント側一回目失敗するかも。
+		w.WriteHeader(http.StatusOK)
+		return
+	default:
+		utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+	log.Printf(logger.InfoLogEntry(traceId, "MATCHRESULT END ==========="))
 }
