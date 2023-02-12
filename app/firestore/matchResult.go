@@ -25,7 +25,8 @@ func AddMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) 
 	}
 	// 切断
 	defer client.Close()
-
+	m.CreateTimestamp = time
+	m.UpdateTimestamp = time
 	_, err = client.Collection("matchResults").Doc(time.Format(RFC3339)[0:19]).Set(ctx, m)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed Add:matchSetting in firestore", err))
