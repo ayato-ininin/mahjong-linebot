@@ -7,6 +7,7 @@ import (
 	logger "mahjong-linebot/logs"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 )
 
@@ -30,6 +31,41 @@ func AddMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) 
 	m.CreateTimestamp = time
 	m.UpdateTimestamp = time
 	_, err = client.Collection("matchResults").Doc(m.DocId).Set(ctx, m)
+	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Add:matchSetting in firestore", err))
+		return err
+	}
+	// エラーなしは成功
+	return err
+}
+
+/*
+*
+
+	firestoreの試合結果を更新
+
+*
+*/
+func UpdateMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) error {
+	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
+	traceId := ctx.Value("traceId").(string)
+	client, err := firebaseInit(ctx)
+	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "firebaseInit失敗", err))
+		return err
+	}
+	// 切断
+	defer client.Close()
+	_, err = client.Collection("matchResults").Doc(m.DocId).Update(ctx, []firestore.Update{
+		{
+			Path:  "pointList",
+			Value: m.PointList,
+		},
+		{
+			Path:  "updateTimestamp",
+			Value: time,
+		},
+	})
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed Add:matchSetting in firestore", err))
 		return err
@@ -70,6 +106,7 @@ func GetMatchResult(ctx context.Context, roomId int) (*[]models.MatchResult, err
 		m := doc.Data()
 		//TODO:PointListの型判定どうするか。
 		ms := models.MatchResult{
+			DocId:            m["docId"].(string),
 			RoomId:           m["roomId"].(int64),
 			PointList:        m["pointList"].([]interface{}),//[]models.PointOfPersonにすると型判定でpanicになる
 			CreateTimestamp:  m["createTimestamp"].(time.Time),

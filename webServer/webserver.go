@@ -113,12 +113,14 @@ func matchResultApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case http.MethodPost:
 		controllers.MatchResultPost(w, r)
+	case http.MethodPut:
+		controllers.MatchResultUpdate(w, r)
 	case http.MethodDelete:
 		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	case http.MethodOptions:
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type") // Content-Typeヘッダの使用を許可する
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST")    // pre-flightリクエストに対応する
+		w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST")    // pre-flightリクエストに対応する
 		//これプリフライトして一回目のレスポンス何もないから、クライアント側一回目失敗するかも。
 		w.WriteHeader(http.StatusOK)
 		return
