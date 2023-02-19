@@ -14,6 +14,7 @@ type MatchSetting struct {
 	Uma              string    `firestore:"uma" json:"uma"`
 	Oka              int64     `firestore:"oka" json:"oka"`
 	IsYakitori       bool      `firestore:"isYakitori" json:"isYakitori"`
+	YakitoriPoint    int64     `firestore:"yakitoriPoint" json:"yakitoriPoint"`
 	IsTobishou       bool      `firestore:"isTobishou" json:"isTobishou"`
 	TobishouPoint    int64     `firestore:"tobishouPoint" json:"tobishouPoint"`
 	Rate             int64     `firestore:"rate" json:"rate"`
