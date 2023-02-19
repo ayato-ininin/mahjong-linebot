@@ -57,6 +57,7 @@ func GetMatchSetting(ctx context.Context, roomId int) (*models.MatchSetting, err
 			Uma:              m["uma"].(string),
 			Oka:              m["oka"].(int64),
 			IsYakitori:       m["isYakitori"].(bool),
+			YakitoriPoint:    m["yakitoriPoint"].(int64),
 			IsTobishou:       m["isTobishou"].(bool),
 			TobishouPoint:    m["tobishouPoint"].(int64),
 			Rate:             m["rate"].(int64),
