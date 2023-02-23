@@ -27,6 +27,7 @@ func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
+	//https://www.wakuwakubank.com/posts/867-go-context/→contextの種類
 	ctx := context.WithValue(context.Background(), "traceId", traceId)//withvalueはtraceIdを保つために必要
 	log.Printf(logger.InfoLogEntry(traceId, "取得部屋番号 : "+ strconv.Itoa(roomid)))
 	m, err := firestore.GetMatchSetting(ctx, roomid)
@@ -55,12 +56,12 @@ func PostMatchSetting(w http.ResponseWriter, r *http.Request) {
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
 	ctx := context.WithValue(context.Background(), "traceId", traceId)
 	//JSONから構造体へ
-	body, err := io.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)//読み切りが必要なのでio.ReadAllを使う(コネクションの再利用)
 	if err != nil {
 		utils.APIError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
+	defer r.Body.Close()//TCPコネクションを閉じて、ファイルディスクリプタの枯渇を防ぐ
 
 	var m models.MatchSetting //構造体
 	err = json.Unmarshal(body, &m)
