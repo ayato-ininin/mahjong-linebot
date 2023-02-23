@@ -19,7 +19,7 @@ import (
 func StartWebServer() error {
 	http.HandleFunc("/v1/api/linebot", lineBotApiHandler)
 	http.HandleFunc("/v1/api/matchSetting", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "https://mahjong-linebot.firebaseapp.com, http://localhost:4200")
+		w.Header().Set("Access-Control-Allow-Origin", "https://mahjong-linebot.firebaseapp.com")
 		switch r.Method {
 		case http.MethodGet:
 				controllers.GetMatchSettingByRoomId(w, r)
