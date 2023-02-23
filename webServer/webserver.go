@@ -17,18 +17,27 @@ import (
 )
 
 func StartWebServer() error {
-	http.HandleFunc("/home", handler)
 	http.HandleFunc("/v1/api/linebot", lineBotApiHandler)
-	http.HandleFunc("/v1/api/matchSetting", matchSettingApiHandler)
+	http.HandleFunc("/v1/api/matchSetting", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+				controllers.GetMatchSettingByRoomId(w, r)
+		case http.MethodPost:
+				controllers.PostMatchSetting(w, r)
+		case http.MethodOptions:
+				controllers.OptionsMatchSettingHandler(w, r)
+		default:
+				utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		}
+	})
 	http.HandleFunc("/v1/api/matchResult", matchResultApiHandler)
+	// パスが一致するものがない場合は404を返す
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.NotFound(w, r)
+	})
+
 	log.Printf("コンテナ起動...")
 	return http.ListenAndServe(fmt.Sprintf(":%d", 8080), nil)
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	//http.Redirect(w, r, "/", http.StatusFound)リダイレクト
-	fmt.Fprintf(w, "hello world")
-	log.Printf("Hello world")
 }
 
 func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,50 +62,13 @@ func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API END ==========="))
 }
 
-func matchSettingApiHandler(w http.ResponseWriter, r *http.Request) {
-	traceId := logger.GetTraceId(r)
-	log.Printf(logger.InfoLogEntry(traceId, "MATCHSETTING START ==========="))
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	switch r.Method {
-	case http.MethodGet:
-		v := r.URL.Query().Get("roomid")
-		if v == "" {
-			utils.APIError(w, "Don't exist query", http.StatusBadRequest)
-			return
-		}
-		roomid, err := strconv.Atoi(v)
-		if err != nil {
-			//クエリパラメータが数字でない
-			log.Printf(logger.ErrorLogEntry(traceId, "Not valid query: required number", err))
-			utils.APIError(w, "Not valid query: required number", http.StatusBadRequest)
-			return
-		}
-		controllers.GetMatchSettingByRoomId(w, r, roomid)
-		return
-	case http.MethodPost:
-		controllers.MatchSettingPost(w, r)
-	case http.MethodDelete:
-		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	case http.MethodOptions:
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type") // Content-Typeヘッダの使用を許可する
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST")    // pre-flightリクエストに対応する
-		//これプリフライトして一回目のレスポンス何もないから、クライアント側一回目失敗するかも。
-		w.WriteHeader(http.StatusOK)
-		return
-	default:
-		utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-	log.Printf(logger.InfoLogEntry(traceId, "MATCHSETTING END ==========="))
-}
-
 func matchResultApiHandler(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "MATCHRESULT START ==========="))
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch r.Method {
 	case http.MethodGet:
+		// ルームIDの取得
 		v := r.URL.Query().Get("roomid")
 		if v == "" {
 			utils.APIError(w, "Don't exist query", http.StatusBadRequest)

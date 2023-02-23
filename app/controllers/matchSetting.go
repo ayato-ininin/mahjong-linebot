@@ -14,34 +14,50 @@ import (
 	"time"
 )
 
-func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request, roomId int) {
-	// 	//データ保存処理
+func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
-	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
-	ctx := context.WithValue(context.Background(), "traceId", traceId)
-	log.Printf(logger.InfoLogEntry(traceId, "取得部屋番号 : "+strconv.Itoa(roomId)))
-	m, err := firestore.GetMatchSetting(ctx, roomId)
+	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHSETTING START ==========="))
+	w.Header().Set("Access-Control-Allow-Origin", "*")//要編集
+
+	roomid, err := strconv.Atoi(r.URL.Query().Get("roomid"))
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId, "Failed getMatchSetting", err))
-		utils.APIError(w, "Failed getMatchSetting", http.StatusInternalServerError)
+		//クエリパラメータが数字でないか空文字
+		log.Printf(logger.ErrorLogEntry(traceId, "Not valid query: required number", err))
+		utils.APIError(w, "Not valid query: required number", http.StatusBadRequest)
 		return
 	}
-	res, _ := json.Marshal(m) //json化
-	log.Printf(logger.InfoLogEntry(traceId, "検索されたデータ : "+string(res)))
+
+	//ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
+	ctx := context.WithValue(context.Background(), "traceId", traceId)//withvalueはtraceIdを保つために必要
+	log.Printf(logger.InfoLogEntry(traceId, "取得部屋番号 : "+ strconv.Itoa(roomid)))
+	m, err := firestore.GetMatchSetting(ctx, roomid)
+	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed getMatchSetting", err))
+		utils.APIError(w, "Failed getMatchSetting", http.StatusInternalServerError)//ここは500でいいのか？サーバのエラーでもないかも
+		return
+	}
+
+	log.Printf(logger.InfoLogEntry(traceId, "検索されたデータ : %+v\n", m))
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(res)
+	json.NewEncoder(w).Encode(m)
+	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHSETTING END ==========="))
 }
 
-func MatchSettingPost(w http.ResponseWriter, r *http.Request) {
-	// 	//データ保存処理
+func PostMatchSetting(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
+	log.Printf(logger.InfoLogEntry(traceId, "POST:MATCHSETTING START ==========="))
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
 	ctx := context.WithValue(context.Background(), "traceId", traceId)
 	//JSONから構造体へ
-	body, _ := io.ReadAll(r.Body)
-	m := new(models.MatchSetting) //構造体
-	err := json.Unmarshal(body, m)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		utils.APIError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var m models.MatchSetting //構造体
+	err = json.Unmarshal(body, &m)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json unmarshal", err))
 		utils.APIError(w, "Failed json unmarshal", http.StatusInternalServerError)
@@ -49,16 +65,22 @@ func MatchSettingPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jst := time.FixedZone("JST", 9*60*60)
-	err = firestore.AddMatchSetting(ctx, m, time.Now().In(jst))
-	//リプライを返さないと何度も再送される（と思われる）ので返信
+	err = firestore.AddMatchSetting(ctx, &m, time.Now().In(jst))
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId, "Failed addMatchSetting", err))
-		utils.APIError(w, "Failed addMatchSetting", http.StatusInternalServerError)
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed postMatchSetting", err))
+		utils.APIError(w, "Failed postMatchSetting", http.StatusInternalServerError)
 		return
 	}
-	res, _ := json.Marshal(m) //json化
-	log.Printf(logger.InfoLogEntry(traceId, "追加データ : "+string(res)))
+
+	log.Printf(logger.InfoLogEntry(traceId, "追加データ : %+v\n", m))
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(res)
+	json.NewEncoder(w).Encode(m)
+	log.Printf(logger.InfoLogEntry(traceId, "POST:MATCHSETTING END ==========="))
+}
+
+func OptionsMatchSettingHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.WriteHeader(http.StatusOK)
 }
