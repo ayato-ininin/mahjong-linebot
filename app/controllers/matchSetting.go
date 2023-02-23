@@ -17,7 +17,6 @@ import (
 func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHSETTING START ==========="))
-	w.Header().Set("Access-Control-Allow-Origin", "*")//要編集
 
 	roomid, err := strconv.Atoi(r.URL.Query().Get("roomid"))
 	if err != nil {
@@ -37,7 +36,14 @@ func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf(logger.InfoLogEntry(traceId, "検索されたデータ : %+v\n", m))
+	// 構造体をJSONに変換する(log出力用)
+	jsonData, err := json.Marshal(&m)
+	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed json marshal", err))
+		utils.APIError(w, "Failed json marshal", http.StatusInternalServerError)
+	}
+	log.Printf(logger.InfoLogEntry(traceId, "検索されたデータ : %s", jsonData))
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(m)
 	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHSETTING END ==========="))
@@ -72,14 +78,20 @@ func PostMatchSetting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf(logger.InfoLogEntry(traceId, "追加データ : %+v\n", m))
+	// 構造体をJSONに変換する(log出力用)
+	jsonData, err := json.Marshal(&m)
+	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed json marshal", err))
+		utils.APIError(w, "Failed json marshal", http.StatusInternalServerError)
+	}
+	log.Printf(logger.InfoLogEntry(traceId, "追加データ : %s", jsonData))
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(m)
 	log.Printf(logger.InfoLogEntry(traceId, "POST:MATCHSETTING END ==========="))
 }
 
 func OptionsMatchSettingHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.WriteHeader(http.StatusOK)
