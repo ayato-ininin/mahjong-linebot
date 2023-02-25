@@ -13,19 +13,23 @@ import (
 
 func firebaseInit(ctx context.Context) (*firestore.Client, error) {
 	traceId := ctx.Value("traceId").(string)
-	decJson := getFirebaseServiceAccountKey()
-	sa := option.WithCredentialsJSON(decJson)
+	// Firebaseのサービスアカウントキーの取得
+	jsonBytes := getFirebaseServiceAccountKey()
+	sa := option.WithCredentialsJSON(jsonBytes)
+
+	// Firebaseアプリケーションの初期化
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId, "Firebase.NewApp失敗", err))
+		log.Printf(logger.ErrorLogEntry(traceId, "Firebaseアプリケーションの初期化に失敗しました", err))
 		return nil, err
 	}
 
-	faclient, err := app.Firestore(ctx)
+	// Firestoreクライアントの初期化
+	fsClient, err := app.Firestore(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId, "app.Firestore失敗", err))
+		log.Printf(logger.ErrorLogEntry(traceId, "Firestoreクライアントの初期化に失敗しました", err))
 		return nil, err
 	}
 
-	return faclient, nil
+	return fsClient, nil
 }
