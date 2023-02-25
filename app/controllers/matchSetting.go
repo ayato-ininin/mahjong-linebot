@@ -32,7 +32,7 @@ func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request) {
 	m, err := firestore.GetMatchSetting(ctx, roomid)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed getMatchSetting", err))
-		utils.APIError(w, "Failed getMatchSetting", http.StatusInternalServerError)//ここは500でいいのか？サーバのエラーでもないかも
+		utils.APIError(w, "Failed GetMatchSetting", http.StatusInternalServerError)//ここは500でいいのか？サーバのエラーでもないかも
 		return
 	}
 
