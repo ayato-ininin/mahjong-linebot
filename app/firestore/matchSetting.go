@@ -6,6 +6,7 @@ import (
 	"log"
 	"mahjong-linebot/app/models"
 	logger "mahjong-linebot/logs"
+	"mahjong-linebot/utils"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -21,9 +22,9 @@ import (
 */
 func GetMatchSetting(ctx context.Context, roomId int) (*models.MatchSetting, error) {
 	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
-	traceId, ok := ctx.Value("traceId").(string)
-	if !ok {
-		return nil, errors.New("traceId not found in context")
+	traceId, err := utils.GetTraceID(ctx)
+	if err != nil {
+		return nil, err
 	}
 	client, err := firebaseInit(ctx)
 	if err != nil {
@@ -35,29 +36,30 @@ func GetMatchSetting(ctx context.Context, roomId int) (*models.MatchSetting, err
 
 	matchSetting, err := getMatchSettingByRoomId(ctx, client, roomId)
 	if err != nil {
-			log.Printf(logger.ErrorLogEntry(traceId, "failed to get matchSetting", err))
-			return nil, errors.New("failed to get matchSetting")
+		log.Printf(logger.ErrorLogEntry(traceId, "failed to get matchSetting", err))
+		return nil, errors.New("failed to get matchSetting")
 	}
 
 	return matchSetting, nil
 }
 
+// roomIdを元にfirestoreから試合設定を取得(DB接続)
 func getMatchSettingByRoomId(ctx context.Context, client *firestore.Client, roomId int) (*models.MatchSetting, error) {
 	iter := client.Collection("matchSettings").Where("roomId", "==", roomId).Limit(1).Documents(ctx)
-	docs, err := iter.GetAll()//イテレータを使う必要がなくなり、コードの簡素化
+	docs, err := iter.GetAll() //イテレータを使う必要がなくなり、コードの簡素化
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 
 	if len(docs) == 0 {
-			return nil, errors.New("roomId not found in database")
+		return nil, errors.New("roomId not found in database")
 	}
 
 	var m models.MatchSetting
 	doc := docs[0]
-	err = doc.DataTo(&m)//各フィールドの初期化が必要なくなる
+	err = doc.DataTo(&m) //各フィールドの初期化が必要なくなる
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 
 	return &m, nil
@@ -74,7 +76,10 @@ func getMatchSettingByRoomId(ctx context.Context, client *firestore.Client, room
 */
 func AddMatchSetting(ctx context.Context, m *models.MatchSetting, time time.Time) error {
 	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
-	traceId := ctx.Value("traceId").(string)
+	traceId, err := utils.GetTraceID(ctx)
+	if err != nil {
+		return err
+	}
 	client, err := firebaseInit(ctx)
 	if err != nil {
 		return err
@@ -82,64 +87,70 @@ func AddMatchSetting(ctx context.Context, m *models.MatchSetting, time time.Time
 	// 切断
 	defer client.Close()
 
-	nextRoomNumber, err := GetNextRoomNumber(ctx, client, traceId)
+	nextRoomNumber, err := GetNextRoomNumber(ctx, client)
 	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Get:nextRoomNumber in firestore", err))
 		return err
 	}
-	m.RoomId = nextRoomNumber
-	m.CreateTimestamp = time
-	m.UpdateTimestamp = time
-	_, err = client.Collection("matchSettings").Doc(time.Format(RFC3339)[0:19]).Set(ctx, m)
+
+	err = setMatchSetting(ctx, client, m, time, nextRoomNumber)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed Add:matchSetting in firestore", err))
 		return err
 	}
 
-	err = changeNextRoomNumber(ctx, client, traceId)
+	err = changeNextRoomNumber(ctx, client)
 	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Change:nextRoomNumber in firestore", err))
 		return err
 	}
 
-	// エラーなしは成功
+	return nil
+}
+
+// firestoreに試合結果を保存(DB接続)
+func setMatchSetting(ctx context.Context, client *firestore.Client, m *models.MatchSetting, time time.Time, nextNum int64) error {
+	m.RoomId = nextNum
+	m.CreateTimestamp = time
+	m.UpdateTimestamp = time
+	_, err := client.Collection("matchSettings").Doc(time.Format(RFC3339)[0:19]).Set(ctx, m)
 	return err
 }
 
 /*
 *
 
-	次のルーム番号を返す
+	次のルーム番号を返す(DB接続)
 
 *
 */
-func GetNextRoomNumber(ctx context.Context, client *firestore.Client, traceId string) (int64, error) {
+func GetNextRoomNumber(ctx context.Context, client *firestore.Client) (int64, error) {
 	dsnap, err := client.Collection("roomNumber").Doc("current").Get(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId, "Failed Get:nextRoomNumber in firestore", err))
 		return 0, err
 	}
-	return dsnap.Data()["nextRoomNumber"].(int64), nil//ここでエラーになることはない
+	return dsnap.Data()["nextRoomNumber"].(int64), nil //ここでエラーになることはない
 }
 
 /*
 *
 
-	nextRoomNumberを+1する処理
+	nextRoomNumberを+1する処理(DB接続)
 
 *
 */
-func changeNextRoomNumber(ctx context.Context, client *firestore.Client, traceId string) error {
+func changeNextRoomNumber(ctx context.Context, client *firestore.Client) error {
 	_, err := client.Collection("roomNumber").Doc("current").Update(ctx, []firestore.Update{
 		{
 			Path:  "nextRoomNumber",
-			Value: firestore.Increment(1),//インクリメント
+			Value: firestore.Increment(1), //インクリメント
 		},
 		{
 			Path:  "timestamp",
-			Value: firestore.ServerTimestamp,//サーバーのタイムスタンプ
+			Value: firestore.ServerTimestamp, //サーバーのタイムスタンプ
 		},
 	})
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId, "Failed Change:nextRoomNumber in firestore", err))
 		return err
 	}
 	return nil

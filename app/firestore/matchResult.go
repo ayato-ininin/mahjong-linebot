@@ -2,9 +2,11 @@ package firestore
 
 import (
 	"context"
+	"errors"
 	"log"
 	"mahjong-linebot/app/models"
 	logger "mahjong-linebot/logs"
+	"mahjong-linebot/utils"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -19,8 +21,10 @@ import (
 *
 */
 func AddMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) error {
-	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
-	traceId := ctx.Value("traceId").(string)
+	traceId, err := utils.GetTraceID(ctx)
+	if err != nil {
+		return err
+	}
 	client, err := firebaseInit(ctx)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "firebaseInit失敗", err))
@@ -28,14 +32,20 @@ func AddMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) 
 	}
 	// 切断
 	defer client.Close()
-	m.CreateTimestamp = time
-	m.UpdateTimestamp = time
-	_, err = client.Collection("matchResults").Doc(m.DocId).Set(ctx, m)
+
+	err = setMatchResult(ctx, client, m, time)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId, "Failed Add:matchSetting in firestore", err))
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed Add:matchResult in firestore", err))
 		return err
 	}
-	// エラーなしは成功
+	return nil
+}
+
+// firestoreに試合結果を保存(DB接続)
+func setMatchResult(ctx context.Context, client *firestore.Client, m *models.MatchResult, time time.Time) error {
+	m.CreateTimestamp = time
+	m.UpdateTimestamp = time
+	_, err := client.Collection("matchResults").Doc(m.DocId).Set(ctx, m)
 	return err
 }
 
@@ -47,31 +57,41 @@ func AddMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) 
 *
 */
 func UpdateMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) error {
-	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
-	traceId := ctx.Value("traceId").(string)
-	client, err := firebaseInit(ctx)
+	traceId, err := utils.GetTraceID(ctx)
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId, "firebaseInit失敗", err))
 		return err
 	}
-	// 切断
+	client, err := firebaseInit(ctx)
+	if err != nil {
+		return err
+	}
 	defer client.Close()
-	_, err = client.Collection("matchResults").Doc(m.DocId).Update(ctx, []firestore.Update{
+
+	err = updateMatchResultInFirestore(ctx, client, m, time)
+	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "FirestoreのmatchResultsコレクションの更新に失敗しました: %v", err))
+		return err
+	}
+
+	return nil
+}
+
+// firestoreの試合結果を更新(DB接続)
+func updateMatchResultInFirestore(ctx context.Context, client *firestore.Client, m *models.MatchResult, time time.Time) error {
+	_, err := client.Collection("matchResults").Doc(m.DocId).Update(ctx, []firestore.Update{
 		{
 			Path:  "pointList",
 			Value: m.PointList,
 		},
 		{
 			Path:  "updateTimestamp",
-			Value: time,
+			Value: firestore.ServerTimestamp,
 		},
 	})
 	if err != nil {
-		log.Printf(logger.ErrorLogEntry(traceId, "Failed Add:matchSetting in firestore", err))
 		return err
 	}
-	// エラーなしは成功
-	return err
+	return nil
 }
 
 /*
@@ -82,8 +102,10 @@ func UpdateMatchResult(ctx context.Context, m *models.MatchResult, time time.Tim
 *
 */
 func GetMatchResult(ctx context.Context, roomId int) (*[]models.MatchResult, error) {
-	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
-	traceId := ctx.Value("traceId").(string)
+	traceId, err := utils.GetTraceID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	client, err := firebaseInit(ctx)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "firebaseInit失敗", err))
@@ -92,33 +114,61 @@ func GetMatchResult(ctx context.Context, roomId int) (*[]models.MatchResult, err
 	// 切断
 	defer client.Close()
 
+	matchResult, err := getMatchResultByRoomId(ctx, client, roomId)
+	if err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "failed to get matchSetting", err))
+		return nil, errors.New("failed to get matchResult")
+	}
+
+	return matchResult, err
+}
+
+// firestoreの試合結果をroomIdを元に検索(DB接続)
+func getMatchResultByRoomId(ctx context.Context, client *firestore.Client, roomId int) (*[]models.MatchResult, error) {
 	iter := client.Collection("matchResults").Where("roomId", "==", roomId).Documents(ctx)
-	var docList []models.MatchResult
+	docList := make([]models.MatchResult, 0)
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
 			break
 		}
 		if err != nil {
-			log.Printf(logger.ErrorLogEntry(traceId, "Failed documents iterator", err))
 			return nil, err
 		}
 		m := doc.Data()
-		//TODO:PointListの型判定どうするか。
 		ms := models.MatchResult{
-			DocId:            m["docId"].(string),
-			RoomId:           m["roomId"].(int64),
-			PointList:        m["pointList"].([]interface{}),//[]models.PointOfPersonにすると型判定でpanicになる
-			CreateTimestamp:  m["createTimestamp"].(time.Time),
-			UpdateTimestamp:  m["updateTimestamp"].(time.Time),
+			DocId:           m["docId"].(string),
+			RoomId:          m["roomId"].(int64),
+			PointList:       pointsOfPerson(m["pointList"].([]interface{})), //[]interface{}型のスライスでくるので、[]models.PointOfPerson型に変換
+			CreateTimestamp: m["createTimestamp"].(time.Time),
+			UpdateTimestamp: m["updateTimestamp"].(time.Time),
 		}
 		docList = append(docList, ms)
 	}
 	if len(docList) == 0 {
-		log.Printf(logger.InfoLogEntry(traceId, "Not Found matchResult data in roomId:", roomId))
-		return nil, err
+		return nil, nil
 	}
+	return &docList, nil
+}
 
-	// エラーなしは成功
-	return &docList, err
+/*
+**
+
+	[]interface{} 型の pointList スライスを []models.PointOfPerson 型に変換するために、pointsOfPerson 関数を作成する
+	そのままだと、型判定でmodelの方と合わなくてエラーになる。
+
+**
+*/
+func pointsOfPerson(ps []interface{}) []models.PointOfPerson {
+	result := make([]models.PointOfPerson, 0, len(ps))
+	for _, p := range ps {
+		m := p.(map[string]interface{})
+		result = append(result, models.PointOfPerson{
+			NameIndex:  int64(m["nameIndex"].(float64)), //なぜかfloat64でくるので、int64に変換
+			Point:      int64(m["point"].(float64)),     //なぜかfloat64でくるので、int64に変換
+			IsYakitori: m["isYakitori"].(bool),
+			IsTobishou: m["isTobishou"].(bool),
+		})
+	}
+	return result
 }

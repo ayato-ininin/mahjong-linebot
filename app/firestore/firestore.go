@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	logger "mahjong-linebot/logs"
+	"mahjong-linebot/utils"
 
 	"cloud.google.com/go/firestore"
 
@@ -12,7 +13,10 @@ import (
 )
 
 func firebaseInit(ctx context.Context) (*firestore.Client, error) {
-	traceId := ctx.Value("traceId").(string)
+	traceId, err := utils.GetTraceID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	// Firebaseのサービスアカウントキーの取得
 	jsonBytes := getFirebaseServiceAccountKey()
 	sa := option.WithCredentialsJSON(jsonBytes)

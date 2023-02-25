@@ -21,28 +21,28 @@ func StartWebServer() error {
 		w.Header().Set("Access-Control-Allow-Origin", "https://mahjong-linebot.firebaseapp.com")
 		switch r.Method {
 		case http.MethodGet:
-				controllers.GetMatchSettingByRoomId(w, r)
+			controllers.GetMatchSettingByRoomId(w, r)
 		case http.MethodPost:
-				controllers.PostMatchSetting(w, r)
+			controllers.PostMatchSetting(w, r)
 		case http.MethodOptions:
-				controllers.OptionsMatchSettingHandler(w, r)
+			controllers.OptionsMatchSettingHandler(w, r)
 		default:
-				utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		}
 	})
 	http.HandleFunc("/v1/api/matchResult", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "https://mahjong-linebot.firebaseapp.com")
 		switch r.Method {
 		case http.MethodGet:
-				controllers.GetMatchResultByRoomId(w, r)
+			controllers.GetMatchResultByRoomId(w, r)
 		case http.MethodPost:
-				controllers.PostMatchResult(w, r)
+			controllers.PostMatchResult(w, r)
 		case http.MethodPut:
 			controllers.UpdateMatchResult(w, r)
 		case http.MethodOptions:
-				controllers.OptionsMatchResultHandler(w, r)
+			controllers.OptionsMatchResultHandler(w, r)
 		default:
-				utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		}
 	})
 	// パスが一致するものがない場合は404を返す

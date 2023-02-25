@@ -26,7 +26,7 @@ func GetMatchResultByRoomId(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
-	ctx := context.WithValue(r.Context(), "traceId", traceId)//r.Context()でリクエストのcontextを再利用
+	ctx := context.WithValue(r.Context(), "traceId", traceId) //r.Context()でリクエストのcontextを再利用
 	log.Printf(logger.InfoLogEntry(traceId, "取得部屋番号 : "+strconv.Itoa(roomid)))
 	m, err := firestore.GetMatchResult(ctx, roomid)
 	if err != nil {
@@ -59,16 +59,16 @@ func PostMatchResult(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "POST:MATCHRESULT START ==========="))
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
-	ctx := context.WithValue(r.Context(), "traceId", traceId)//r.Context()でリクエストのcontextを再利用
+	ctx := context.WithValue(r.Context(), "traceId", traceId) //r.Context()でリクエストのcontextを再利用
 	//JSONから構造体へ
-	var m models.MatchResult //構造体
-	err := json.NewDecoder(r.Body).Decode(&m)//io.readAllよりも効率的(メモリ使用量が少ない)
+	var m models.MatchResult                  //構造体
+	err := json.NewDecoder(r.Body).Decode(&m) //io.readAllよりも効率的(メモリ使用量が少ない)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json unmarshal", err))
 		utils.APIError(w, "Failed json unmarshal", http.StatusInternalServerError)
 		return
 	}
-	defer r.Body.Close()//TCPコネクションを閉じて、ファイルディスクリプタの枯渇を防ぐ
+	defer r.Body.Close() //TCPコネクションを閉じて、ファイルディスクリプタの枯渇を防ぐ
 
 	jst := time.FixedZone("JST", 9*60*60)
 	err = firestore.AddMatchResult(ctx, &m, time.Now().In(jst))
@@ -102,16 +102,16 @@ func UpdateMatchResult(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "UPDATE:MATCHRESULT START ==========="))
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
-	ctx := context.WithValue(r.Context(), "traceId", traceId)//r.Context()でリクエストのcontextを再利用
+	ctx := context.WithValue(r.Context(), "traceId", traceId) //r.Context()でリクエストのcontextを再利用
 	//JSONから構造体へ
-	var m models.MatchResult //構造体
-	err := json.NewDecoder(r.Body).Decode(&m)//io.readAllよりも効率的(メモリ使用量が少ない)
+	var m models.MatchResult                  //構造体
+	err := json.NewDecoder(r.Body).Decode(&m) //io.readAllよりも効率的(メモリ使用量が少ない)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json unmarshal", err))
 		utils.APIError(w, "Failed json unmarshal", http.StatusInternalServerError)
 		return
 	}
-	defer r.Body.Close()//TCPコネクションを閉じて、ファイルディスクリプタの枯渇を防ぐ
+	defer r.Body.Close() //TCPコネクションを閉じて、ファイルディスクリプタの枯渇を防ぐ
 
 	jst := time.FixedZone("JST", 9*60*60)
 	err = firestore.UpdateMatchResult(ctx, &m, time.Now().In(jst))
