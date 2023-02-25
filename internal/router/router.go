@@ -9,9 +9,9 @@ https://github.com/line/line-bot-sdk-go
 import (
 	"fmt"
 	"log"
-	"mahjong-linebot/pkg/controllers"
-	logger "mahjong-linebot/pkg/logs"
-	"mahjong-linebot/pkg/utils"
+	"mahjong-linebot/internal/controllers"
+	logger "mahjong-linebot/internal/logs"
+	"mahjong-linebot/internal/utils"
 	"net/http"
 )
 

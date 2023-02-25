@@ -2,8 +2,8 @@ package main
 
 //cmdはアプリケーションのエントリーポイントを持つ
 import (
-	logger "mahjong-linebot/pkg/logs"
-	"mahjong-linebot/pkg/router"
+	logger "mahjong-linebot/internal/logs"
+	"mahjong-linebot/internal/router"
 )
 
 func main() {

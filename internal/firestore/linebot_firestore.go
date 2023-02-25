@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 	"log"
-	logger "mahjong-linebot/pkg/logs"
+	logger "mahjong-linebot/internal/logs"
 	"time"
 
-	"mahjong-linebot/pkg/config"
+	"mahjong-linebot/internal/config"
 
 	"cloud.google.com/go/firestore"
 )

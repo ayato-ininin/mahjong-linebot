@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"log"
-	logger "mahjong-linebot/pkg/logs"
-	"mahjong-linebot/pkg/models"
-	"mahjong-linebot/pkg/repositories"
-	"mahjong-linebot/pkg/utils"
+	logger "mahjong-linebot/internal/logs"
+	"mahjong-linebot/internal/models"
+	"mahjong-linebot/internal/repositories"
+	"mahjong-linebot/internal/utils"
 	"time"
 )
 

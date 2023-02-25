@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
-	"mahjong-linebot/pkg/models"
+	"mahjong-linebot/internal/models"
 	"time"
 
 	"cloud.google.com/go/firestore"

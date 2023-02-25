@@ -9,10 +9,10 @@ https://github.com/line/line-bot-sdk-go
 import (
 	"context"
 	"log"
-	"mahjong-linebot/pkg/config"
-	"mahjong-linebot/pkg/firestore"
-	logger "mahjong-linebot/pkg/logs"
-	"mahjong-linebot/pkg/utils"
+	"mahjong-linebot/internal/config"
+	"mahjong-linebot/internal/firestore"
+	logger "mahjong-linebot/internal/logs"
+	"mahjong-linebot/internal/utils"
 	"net/http"
 	"time"
 

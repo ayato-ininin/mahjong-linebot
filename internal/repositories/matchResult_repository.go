@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"context"
-	"mahjong-linebot/pkg/models"
-	"mahjong-linebot/pkg/utils"
+	"mahjong-linebot/internal/models"
+	"mahjong-linebot/internal/utils"
 	"time"
 
 	"cloud.google.com/go/firestore"
