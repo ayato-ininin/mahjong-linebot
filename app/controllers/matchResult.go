@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"io"
 	"log"
 	"mahjong-linebot/app/firestore"
 	"mahjong-linebot/app/models"
@@ -27,7 +26,7 @@ func GetMatchResultByRoomId(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
-	ctx := context.WithValue(context.Background(), "traceId", traceId)
+	ctx := context.WithValue(r.Context(), "traceId", traceId)//r.Context()でリクエストのcontextを再利用
 	log.Printf(logger.InfoLogEntry(traceId, "取得部屋番号 : "+strconv.Itoa(roomid)))
 	m, err := firestore.GetMatchResult(ctx, roomid)
 	if err != nil {
@@ -41,11 +40,17 @@ func GetMatchResultByRoomId(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json marshal", err))
 		utils.APIError(w, "Failed json marshal", http.StatusInternalServerError)
+		return
 	}
 	log.Printf(logger.InfoLogEntry(traceId, "検索されたデータ(result) : %s", jsonData))
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(m)
+	//エラー処理
+	if err := json.NewEncoder(w).Encode(m); err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed json encode", err))
+		utils.APIError(w, "Failed json encode", http.StatusInternalServerError)
+		return
+	}
 	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHRESULT END ==========="))
 }
 
@@ -54,22 +59,16 @@ func PostMatchResult(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "POST:MATCHRESULT START ==========="))
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
-	ctx := context.WithValue(context.Background(), "traceId", traceId)
+	ctx := context.WithValue(r.Context(), "traceId", traceId)//r.Context()でリクエストのcontextを再利用
 	//JSONから構造体へ
-	body, err := io.ReadAll(r.Body)//読み切りが必要なのでio.ReadAllを使う(コネクションの再利用)
-	if err != nil {
-		utils.APIError(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()//TCPコネクションを閉じて、ファイルディスクリプタの枯渇を防ぐ
-
 	var m models.MatchResult //構造体
-	err = json.Unmarshal(body, &m)
+	err := json.NewDecoder(r.Body).Decode(&m)//io.readAllよりも効率的(メモリ使用量が少ない)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json unmarshal", err))
 		utils.APIError(w, "Failed json unmarshal", http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()//TCPコネクションを閉じて、ファイルディスクリプタの枯渇を防ぐ
 
 	jst := time.FixedZone("JST", 9*60*60)
 	err = firestore.AddMatchResult(ctx, &m, time.Now().In(jst))
@@ -84,11 +83,17 @@ func PostMatchResult(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json marshal", err))
 		utils.APIError(w, "Failed json marshal", http.StatusInternalServerError)
+		return
 	}
 	log.Printf(logger.InfoLogEntry(traceId, "追加データ : %s", jsonData))
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(m)
+	//エラー処理
+	if err := json.NewEncoder(w).Encode(m); err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed json encode", err))
+		utils.APIError(w, "Failed json encode", http.StatusInternalServerError)
+		return
+	}
 	log.Printf(logger.InfoLogEntry(traceId, "POST:MATCHRESULT END ==========="))
 }
 
@@ -97,22 +102,16 @@ func UpdateMatchResult(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "UPDATE:MATCHRESULT START ==========="))
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
-	ctx := context.WithValue(context.Background(), "traceId", traceId)
+	ctx := context.WithValue(r.Context(), "traceId", traceId)//r.Context()でリクエストのcontextを再利用
 	//JSONから構造体へ
-	body, err := io.ReadAll(r.Body)//読み切りが必要なのでio.ReadAllを使う(コネクションの再利用)
-	if err != nil {
-		utils.APIError(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()//TCPコネクションを閉じて、ファイルディスクリプタの枯渇を防ぐ
-
 	var m models.MatchResult //構造体
-	err = json.Unmarshal(body, &m)
+	err := json.NewDecoder(r.Body).Decode(&m)//io.readAllよりも効率的(メモリ使用量が少ない)
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json unmarshal", err))
 		utils.APIError(w, "Failed json unmarshal", http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()//TCPコネクションを閉じて、ファイルディスクリプタの枯渇を防ぐ
 
 	jst := time.FixedZone("JST", 9*60*60)
 	err = firestore.UpdateMatchResult(ctx, &m, time.Now().In(jst))
@@ -127,11 +126,17 @@ func UpdateMatchResult(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json marshal", err))
 		utils.APIError(w, "Failed json marshal", http.StatusInternalServerError)
+		return
 	}
 	log.Printf(logger.InfoLogEntry(traceId, "追加データ : %s", jsonData))
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(m)
+	//エラー処理
+	if err := json.NewEncoder(w).Encode(m); err != nil {
+		log.Printf(logger.ErrorLogEntry(traceId, "Failed json encode", err))
+		utils.APIError(w, "Failed json encode", http.StatusInternalServerError)
+		return
+	}
 	log.Printf(logger.InfoLogEntry(traceId, "UPDATE:MATCHRESULT END ==========="))
 }
 
