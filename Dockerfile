@@ -12,7 +12,7 @@ COPY . ./
 
 RUN go mod download
 
-RUN go build -o /mahjong-linebot .
+RUN go build -o /mahjong-linebot ./cmd/server
 
 EXPOSE 8080
 
