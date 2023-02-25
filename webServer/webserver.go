@@ -13,7 +13,6 @@ import (
 	logger "mahjong-linebot/logs"
 	"mahjong-linebot/utils"
 	"net/http"
-	"strconv"
 )
 
 func StartWebServer() error {
@@ -31,7 +30,21 @@ func StartWebServer() error {
 				utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		}
 	})
-	http.HandleFunc("/v1/api/matchResult", matchResultApiHandler)
+	http.HandleFunc("/v1/api/matchResult", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "https://mahjong-linebot.firebaseapp.com")
+		switch r.Method {
+		case http.MethodGet:
+				controllers.GetMatchResultByRoomId(w, r)
+		case http.MethodPost:
+				controllers.PostMatchResult(w, r)
+		case http.MethodPut:
+			controllers.UpdateMatchResult(w, r)
+		case http.MethodOptions:
+				controllers.OptionsMatchResultHandler(w, r)
+		default:
+				utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		}
+	})
 	// パスが一致するものがない場合は404を返す
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
@@ -61,45 +74,4 @@ func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API END ==========="))
-}
-
-func matchResultApiHandler(w http.ResponseWriter, r *http.Request) {
-	traceId := logger.GetTraceId(r)
-	log.Printf(logger.InfoLogEntry(traceId, "MATCHRESULT START ==========="))
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	switch r.Method {
-	case http.MethodGet:
-		// ルームIDの取得
-		v := r.URL.Query().Get("roomid")
-		if v == "" {
-			utils.APIError(w, "Don't exist query", http.StatusBadRequest)
-			return
-		}
-		roomid, err := strconv.Atoi(v)
-		if err != nil {
-			//クエリパラメータが数字でない
-			log.Printf(logger.ErrorLogEntry(traceId, "Not valid query: required number", err))
-			utils.APIError(w, "Not valid query: required number", http.StatusBadRequest)
-			return
-		}
-		controllers.GetMatchResultByRoomId(w, r, roomid)
-		return
-	case http.MethodPost:
-		controllers.MatchResultPost(w, r)
-	case http.MethodPut:
-		controllers.MatchResultUpdate(w, r)
-	case http.MethodDelete:
-		utils.APIError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	case http.MethodOptions:
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type") // Content-Typeヘッダの使用を許可する
-		w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST")    // pre-flightリクエストに対応する
-		//これプリフライトして一回目のレスポンス何もないから、クライアント側一回目失敗するかも。
-		w.WriteHeader(http.StatusOK)
-		return
-	default:
-		utils.APIError(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-	log.Printf(logger.InfoLogEntry(traceId, "MATCHRESULT END ==========="))
 }

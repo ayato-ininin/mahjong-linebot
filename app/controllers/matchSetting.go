@@ -43,7 +43,7 @@ func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request) {
 		log.Printf(logger.ErrorLogEntry(traceId, "Failed json marshal", err))
 		utils.APIError(w, "Failed json marshal", http.StatusInternalServerError)
 	}
-	log.Printf(logger.InfoLogEntry(traceId, "検索されたデータ : %s", jsonData))
+	log.Printf(logger.InfoLogEntry(traceId, "検索されたデータ(setting) : %s", jsonData))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(m)
