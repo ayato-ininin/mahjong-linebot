@@ -3,8 +3,8 @@ package firestore
 import (
 	"context"
 	"log"
-	logger "mahjong-linebot/logs"
-	"mahjong-linebot/utils"
+	logger "mahjong-linebot/pkg/logs"
+	"mahjong-linebot/pkg/utils"
 
 	"cloud.google.com/go/firestore"
 

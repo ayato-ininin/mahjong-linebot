@@ -1,4 +1,4 @@
-package webServer
+package router
 
 /*
 【参考文献】
@@ -9,9 +9,9 @@ https://github.com/line/line-bot-sdk-go
 import (
 	"fmt"
 	"log"
-	"mahjong-linebot/app/controllers"
-	logger "mahjong-linebot/logs"
-	"mahjong-linebot/utils"
+	"mahjong-linebot/pkg/controllers"
+	logger "mahjong-linebot/pkg/logs"
+	"mahjong-linebot/pkg/utils"
 	"net/http"
 )
 
