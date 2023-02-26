@@ -14,6 +14,7 @@ import (
 	"strings"
 )
 
+// log出力設定
 func LoggingSettings(logFile string) {
 	//O_RDWR : ファイルの読み込みと書き込み両方
 	//O_CREATE: ファイルがなければ作成
@@ -99,16 +100,6 @@ func ErrorLogEntry(traceId string, message string, args ...interface{}) string {
 			Line:     int64(line),
 			Function: runtime.FuncForPC(pt).Name(),
 		},
-	}
-
-	return entry.String()
-}
-
-// ERRORレベルのログ出力
-func ErrorLogEntryWithoutTrace(message string, traceId string, args ...interface{}) string {
-	entry := &LogEntry{
-		Severity: ERROR,
-		Message:  message,
 	}
 
 	return entry.String()

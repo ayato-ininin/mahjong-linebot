@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// 部屋番号で対局結果を取得するコントローラー
 func GetMatchResultByRoomId(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHRESULT START ==========="))
@@ -54,6 +55,7 @@ func GetMatchResultByRoomId(w http.ResponseWriter, r *http.Request) {
 	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHRESULT END ==========="))
 }
 
+// 対局結果を保存するコントローラー
 func PostMatchResult(w http.ResponseWriter, r *http.Request) {
 	// 	//データ保存処理
 	traceId := logger.GetTraceId(r)
@@ -97,6 +99,7 @@ func PostMatchResult(w http.ResponseWriter, r *http.Request) {
 	log.Printf(logger.InfoLogEntry(traceId, "POST:MATCHRESULT END ==========="))
 }
 
+// 対局結果を更新するコントローラー
 func UpdateMatchResult(w http.ResponseWriter, r *http.Request) {
 	// 	//データ保存処理
 	traceId := logger.GetTraceId(r)
@@ -140,6 +143,7 @@ func UpdateMatchResult(w http.ResponseWriter, r *http.Request) {
 	log.Printf(logger.InfoLogEntry(traceId, "UPDATE:MATCHRESULT END ==========="))
 }
 
+// プリフライトリクエストのハンドラー
 func OptionsMatchResultHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")

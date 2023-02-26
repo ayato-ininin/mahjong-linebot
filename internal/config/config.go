@@ -30,11 +30,7 @@ func init() {
 	}
 }
 
-/*
-*
-secret managerに保存しているデータをバイト配列で返す
-*
-*/
+// secret manager(GCP)に保存しているデータをバイト配列で返す
 func GetDataFromSecretManager(secretName string) *[]byte {
 	// Use a service account
 	projectID := "1033476136185"

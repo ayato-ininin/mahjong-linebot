@@ -15,6 +15,7 @@ import (
 	"net/http"
 )
 
+// ルーティングを設定する
 func StartWebServer() error {
 	http.HandleFunc("/v1/api/linebot", lineBotApiHandler)
 	http.HandleFunc("/v1/api/matchSetting", func(w http.ResponseWriter, r *http.Request) {
@@ -54,6 +55,7 @@ func StartWebServer() error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", 8080), nil)
 }
 
+// linebot関連、今後リファクタ予定
 func lineBotApiHandler(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API START ==========="))

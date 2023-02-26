@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// 部屋番号で試合設定を取得するコントローラー
 func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHSETTING START ==========="))
@@ -55,6 +56,7 @@ func GetMatchSettingByRoomId(w http.ResponseWriter, r *http.Request) {
 	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHSETTING END ==========="))
 }
 
+// 試合設定を追加するコントローラー
 func PostMatchSetting(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "POST:MATCHSETTING START ==========="))
@@ -97,6 +99,7 @@ func PostMatchSetting(w http.ResponseWriter, r *http.Request) {
 	log.Printf(logger.InfoLogEntry(traceId, "POST:MATCHSETTING END ==========="))
 }
 
+// プリフライトリクエストのためのコントローラー
 func OptionsMatchSettingHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")

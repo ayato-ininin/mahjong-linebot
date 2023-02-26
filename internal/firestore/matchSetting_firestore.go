@@ -11,14 +11,8 @@ import (
 	"time"
 )
 
-/*
-*
-
-	firestoreの設定をroomIdを元に検索
-	roomIdをfirestoreから受け取るときは、int64になる。(firestoreの仕様)
-
-*
-*/
+// firestoreの設定をroomIdを元に検索
+// roomIdをfirestoreから受け取るときは、int64になる。(firestoreの仕様)
 func GetMatchSetting(ctx context.Context, roomId int) (*models.MatchSetting, error) {
 	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
 	traceId, err := utils.GetTraceID(ctx)
@@ -42,15 +36,10 @@ func GetMatchSetting(ctx context.Context, roomId int) (*models.MatchSetting, err
 	return matchSetting, nil
 }
 
-/*
-*
 
-	firestoreのに試合の設定を追加
-	matchSettingsに追加するのと、nextRoomNumberの更新をトランザクションしないと
-	片方ずれたらroomIdかぶるとかになるので、要検討
-
-*
-*/
+// firestoreのに試合の設定を追加
+// matchSettingsに追加するのと、nextRoomNumberの更新をトランザクションしないと
+// 片方ずれたらroomIdかぶるとかになるので、要検討
 func AddMatchSetting(ctx context.Context, m *models.MatchSetting, time time.Time) error {
 	// contextにセットした値はinterface{}型のため.(string)でassertionが必要
 	traceId, err := utils.GetTraceID(ctx)

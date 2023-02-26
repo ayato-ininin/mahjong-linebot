@@ -10,17 +10,11 @@ import (
 )
 
 const (
-	//ちなみに、Z09:00をなくすと、Formatにしたら自動でUTCの時間になってしまう。
+	//Z09:00をなくすと、Formatにしたら自動でUTCの時間になってしまう。
 	RFC3339 = "2006-01-02T15:04:05Z09:00"
 )
 
-/*
-*
-
-	roomIdを元にfirestoreから試合設定を取得(DB接続)
-
-*
-*/
+// roomIdを元にfirestoreから試合設定を取得(DB接続)
 func GetMatchSettingByRoomId(ctx context.Context, client *firestore.Client, roomId int) (*models.MatchSetting, error) {
 	iter := client.Collection("matchSettings").Where("roomId", "==", roomId).Limit(1).Documents(ctx)
 	docs, err := iter.GetAll() //イテレータを使う必要がなくなり、コードの簡素化
@@ -42,13 +36,7 @@ func GetMatchSettingByRoomId(ctx context.Context, client *firestore.Client, room
 	return &m, nil
 }
 
-/*
-*
-
-	firestoreに試合結果を保存(DB接続)
-
-*
-*/
+// firestoreに試合結果を保存(DB接続)
 func SetMatchSetting(ctx context.Context, client *firestore.Client, m *models.MatchSetting, time time.Time, nextNum int64) error {
 	m.RoomId = nextNum
 	m.CreateTimestamp = time
@@ -57,13 +45,7 @@ func SetMatchSetting(ctx context.Context, client *firestore.Client, m *models.Ma
 	return err
 }
 
-/*
-*
-
-	次のルーム番号を返す(DB接続)
-
-*
-*/
+// 次のルーム番号を返す(DB接続)
 func GetNextRoomNumber(ctx context.Context, client *firestore.Client) (int64, error) {
 	dsnap, err := client.Collection("roomNumber").Doc("current").Get(ctx)
 	if err != nil {
@@ -72,13 +54,7 @@ func GetNextRoomNumber(ctx context.Context, client *firestore.Client) (int64, er
 	return dsnap.Data()["nextRoomNumber"].(int64), nil //ここでエラーになることはない
 }
 
-/*
-*
-
-	nextRoomNumberを+1する処理(DB接続)
-
-*
-*/
+// nextRoomNumberを+1する処理(DB接続)
 func ChangeNextRoomNumber(ctx context.Context, client *firestore.Client) error {
 	_, err := client.Collection("roomNumber").Doc("current").Update(ctx, []firestore.Update{
 		{

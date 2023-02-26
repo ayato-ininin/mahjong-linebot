@@ -11,13 +11,7 @@ import (
 	"time"
 )
 
-/*
-*
-
-	firestoreに試合結果を保存
-
-*
-*/
+// firestoreに試合結果を保存
 func AddMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) error {
 	traceId, err := utils.GetTraceID(ctx)
 	if err != nil {
@@ -39,13 +33,7 @@ func AddMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) 
 	return nil
 }
 
-/*
-*
-
-	firestoreの試合結果を更新
-
-*
-*/
+// firestoreの試合結果を更新
 func UpdateMatchResult(ctx context.Context, m *models.MatchResult, time time.Time) error {
 	traceId, err := utils.GetTraceID(ctx)
 	if err != nil {
@@ -66,13 +54,7 @@ func UpdateMatchResult(ctx context.Context, m *models.MatchResult, time time.Tim
 	return nil
 }
 
-/*
-*
-
-	firestoreの試合結果をroomIdを元に検索
-
-*
-*/
+// firestoreの試合結果をroomIdを元に検索
 func GetMatchResult(ctx context.Context, roomId int) (*[]models.MatchResult, error) {
 	traceId, err := utils.GetTraceID(ctx)
 	if err != nil {

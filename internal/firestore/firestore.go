@@ -12,6 +12,7 @@ import (
 	"google.golang.org/api/option"
 )
 
+//firebaseのサービスアカウントキーを取得、クライアントの初期化
 func firebaseInit(ctx context.Context) (*firestore.Client, error) {
 	traceId, err := utils.GetTraceID(ctx)
 	if err != nil {

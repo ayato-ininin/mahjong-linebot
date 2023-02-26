@@ -10,13 +10,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-/*
-*
-
-	firestoreに試合結果を保存
-
-*
-*/
+// firestoreに試合結果を保存
 func SetMatchResult(ctx context.Context, client *firestore.Client, m *models.MatchResult, time time.Time) error {
 	m.CreateTimestamp = time
 	m.UpdateTimestamp = time
@@ -24,13 +18,7 @@ func SetMatchResult(ctx context.Context, client *firestore.Client, m *models.Mat
 	return err
 }
 
-/*
-*
-
-	firestoreの試合結果を更新
-
-*
-*/
+// firestoreの試合結果を更新
 func UpdateMatchResultInFirestore(ctx context.Context, client *firestore.Client, m *models.MatchResult, time time.Time) error {
 	_, err := client.Collection("matchResults").Doc(m.DocId).Update(ctx, []firestore.Update{
 		{
@@ -48,13 +36,7 @@ func UpdateMatchResultInFirestore(ctx context.Context, client *firestore.Client,
 	return nil
 }
 
-/*
-*
-
-	firestoreの試合結果をroomIdを元に検索(DB接続)
-
-*
-*/
+// firestoreの試合結果をroomIdを元に検索(DB接続)
 func GetMatchResultByRoomId(ctx context.Context, client *firestore.Client, roomId int) (*[]models.MatchResult, error) {
 	iter := client.Collection("matchResults").Where("roomId", "==", roomId).Documents(ctx)
 	docList := make([]models.MatchResult, 0)
@@ -82,14 +64,8 @@ func GetMatchResultByRoomId(ctx context.Context, client *firestore.Client, roomI
 	return &docList, nil
 }
 
-/*
-**
-
-	[]interface{} 型の pointList スライスを []models.PointOfPerson 型に変換するために、pointsOfPerson 関数を作成する
-	そのままだと、型判定でmodelの方と合わなくてエラーになる。
-
-**
-*/
+// []interface{} 型の pointList スライスを []models.PointOfPerson 型に変換するために、pointsOfPerson 関数を作成する
+// そのままだと、型判定でmodelの方と合わなくてエラーになる。
 func pointsOfPerson(ps []interface{}) []models.PointOfPerson {
 	result := make([]models.PointOfPerson, 0, len(ps))
 	for _, p := range ps {
