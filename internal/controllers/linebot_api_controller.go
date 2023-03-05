@@ -21,8 +21,18 @@ import (
 
 func LineBotApiPost(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
+	log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API START ==========="))
+
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
 	ctx := context.WithValue(context.Background(), "traceId", traceId)
+	h := r.Header["User-Agent"][0]
+	//正しいlinebotからリクエストが送られない場合にerrorを返す
+	if h != "LineBotWebhook/2.0" {
+		utils.APIError(w, "Error client agent", http.StatusBadRequest)
+		log.Printf(logger.ErrorLogEntry(traceId, "Error client agent "+r.Header["User-Agent"][0]))
+		return
+	}
+
 	jst := time.FixedZone("JST", 9*60*60)
 	config, err := config.InitConfig()
 	if err != nil {
@@ -145,6 +155,7 @@ func LineBotApiPost(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+			log.Printf(logger.InfoLogEntry(traceId, "LINEBOT API END ==========="))
 		}
 	}
 }

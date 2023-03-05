@@ -5,11 +5,16 @@ go 1.19
 require (
 	cloud.google.com/go/firestore v1.9.0
 	firebase.google.com/go v3.13.0+incompatible
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/line/line-bot-sdk-go/v7 v7.18.0
+	github.com/rs/cors v1.8.3
 	google.golang.org/api v0.105.0
 )
 
-require cloud.google.com/go/logging v1.6.1 // indirect
+require (
+	cloud.google.com/go/logging v1.6.1 // indirect
+	github.com/go-chi/cors v1.2.1 // indirect
+)
 
 require (
 	cloud.google.com/go v0.105.0 // indirect

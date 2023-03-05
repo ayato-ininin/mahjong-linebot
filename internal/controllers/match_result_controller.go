@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 )
 
 // 部屋番号で対局結果を取得するコントローラー
@@ -18,7 +20,7 @@ func GetMatchResultByRoomId(w http.ResponseWriter, r *http.Request) {
 	traceId := logger.GetTraceId(r)
 	log.Printf(logger.InfoLogEntry(traceId, "GET:MATCHRESULT START ==========="))
 
-	roomid, err := strconv.Atoi(r.URL.Query().Get("roomid"))
+	roomid, err := strconv.Atoi(chi.URLParam(r, "roomid"))
 	if err != nil {
 		//クエリパラメータが数字でないか空文字
 		log.Printf(logger.ErrorLogEntry(traceId, "Not valid query: required number", err))
@@ -141,13 +143,6 @@ func UpdateMatchResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf(logger.InfoLogEntry(traceId, "UPDATE:MATCHRESULT END ==========="))
-}
-
-// プリフライトリクエストのハンドラー
-func OptionsMatchResultHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.WriteHeader(http.StatusOK)
 }
 
 // func PostMatchResult(w http.ResponseWriter, r *http.Request) {
