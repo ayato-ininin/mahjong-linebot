@@ -14,7 +14,6 @@ var (
 	ERROR = "ERROR"
 )
 
-
 // GCPのLogEntryに則った構造化ログモデル
 type LogEntryTest struct {
 	// GCP上でLogLevelを表す

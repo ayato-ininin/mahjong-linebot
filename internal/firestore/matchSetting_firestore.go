@@ -36,7 +36,6 @@ func GetMatchSetting(ctx context.Context, roomId int) (*models.MatchSetting, err
 	return matchSetting, nil
 }
 
-
 // firestoreのに試合の設定を追加
 // matchSettingsに追加するのと、nextRoomNumberの更新をトランザクションしないと
 // 片方ずれたらroomIdかぶるとかになるので、要検討

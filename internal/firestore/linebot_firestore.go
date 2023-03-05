@@ -168,7 +168,10 @@ firebaseの認証用jsonをバイト配列にて返す
 *
 */
 func getFirebaseServiceAccountKey() []byte {
-	data := *config.GetDataFromSecretManager("MAHJONG_LINEBOT_FIREBASE_SA")
+	data, err := config.GetDataFromSecretManager("MAHJONG_LINEBOT_FIREBASE_SA")
+	if err != nil {
+		log.Printf("Failed firebaseSA get: err=%v", err)
+	}
 	dec, err := base64.StdEncoding.DecodeString(string(data))
 	if err != nil {
 		log.Printf("Failed firebaseSA decode: err=%v", err)

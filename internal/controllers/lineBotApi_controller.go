@@ -24,9 +24,14 @@ func LineBotApiPost(w http.ResponseWriter, r *http.Request) {
 	// contextを作成しtraceIdをセットする(リクエストを渡すのではなく、contextにしてfirestoreに渡す。traceIdにて追跡のため)
 	ctx := context.WithValue(context.Background(), "traceId", traceId)
 	jst := time.FixedZone("JST", 9*60*60)
+	config, err := config.InitConfig()
+	if err != nil {
+		utils.APIError(w, "Error init config", http.StatusBadRequest)
+		log.Printf(logger.ErrorLogEntry(traceId, "configの初期化に失敗", err))
+	}
 	bot, err := linebot.New(
-		config.Config.ChannelSecret, //channel secret
-		config.Config.AccessToken,   //access token
+		config.ChannelSecret, //channel secret
+		config.AccessToken,   //access token
 	)
 	if err != nil {
 		utils.APIError(w, "Error init client", http.StatusBadRequest)

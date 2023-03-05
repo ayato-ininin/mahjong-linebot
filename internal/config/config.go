@@ -14,24 +14,33 @@ type ConfigList struct {
 	AccessToken   string
 }
 
-var Config ConfigList //グローバル変数
+// initだと他のファイルのテスト時に配下パッケージの中でconfig読んでると,
+// 　これが呼び出されてテストエラーになるので、initConfigに変更
+func InitConfig() (*ConfigList, error) {
+	var channel_secret []byte
+	var access_token []byte
+	var err error
 
-// パッケージを読み込むときに、一回だけ読み込まれる。
-// main.goからimportされたとき、設定ファイルを読み込むことができる。
-// それをグローバル変数に入れてるから、main.goからグローバル変数として呼び出せる仕組み。
-// 別途、config.iniファイルの作成が必要。
-func init() {
-	channel_secret := *GetDataFromSecretManager("LINEBOT_CHANNEL_SECRET")
-	access_token := *GetDataFromSecretManager("LINEBOT_ACCESS_TOKEN")
-
-	Config = ConfigList{
-		ChannelSecret: string(channel_secret),
-		AccessToken:   string(access_token),
+	channel_secret, err = GetDataFromSecretManager("LINEBOT_CHANNEL_SECRET")
+	if err != nil {
+		log.Printf("channel_secret取得失敗 err=%v", err)
+		return nil, err
 	}
+	access_token, err = GetDataFromSecretManager("LINEBOT_ACCESS_TOKEN")
+	if err != nil {
+		log.Printf("access_token取得失敗 err=%v", err)
+		return nil, err
+	}
+
+	var config ConfigList
+	config.ChannelSecret = string(channel_secret)
+	config.AccessToken = string(access_token)
+
+	return &config, nil
 }
 
 // secret manager(GCP)に保存しているデータをバイト配列で返す
-func GetDataFromSecretManager(secretName string) *[]byte {
+func GetDataFromSecretManager(secretName string) ([]byte, error) {
 	// Use a service account
 	projectID := "1033476136185"
 
@@ -55,5 +64,5 @@ func GetDataFromSecretManager(secretName string) *[]byte {
 		log.Printf("Failed to access secret version err=%v", err)
 	}
 
-	return &result.Payload.Data
+	return result.Payload.Data, err
 }
